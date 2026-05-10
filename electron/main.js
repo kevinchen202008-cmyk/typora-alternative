@@ -384,7 +384,7 @@ ipcMain.once('renderer-ready', () => {
 
 // ── Update detection (F11) ────────────────────────────────────────────────────
 const CURRENT_VERSION = '1.0.0';
-const RELEASE_API     = 'https://api.github.com/repos/typora-alternative/typora-alternative/releases/latest';
+const RELEASE_API     = 'https://api.github.com/repos/kevinchen202008-cmyk/typora-alternative/releases/latest';
 
 function checkForUpdate() {
   try {

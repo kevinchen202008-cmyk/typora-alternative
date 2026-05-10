@@ -72,7 +72,7 @@ done();
 // 5. Write minimal package.json for the app
 step('Writing app package.json');
 fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify({
-  name: 'typora-fake',
+  name: 'typora-alternative',
   version: '1.0.0',
   main: 'electron/main.js',
 }, null, 2), 'utf8');
