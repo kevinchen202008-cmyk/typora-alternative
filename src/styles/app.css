@@ -196,14 +196,6 @@ button {
 
 .outline-item:hover { background: var(--bg-sidebar-hover); }
 
-.outline-marker {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--accent);
-  opacity: .75;
-  min-width: 18px;
-  flex-shrink: 0;
-}
 
 .outline-text {
   overflow: hidden;

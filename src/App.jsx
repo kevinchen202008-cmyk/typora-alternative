@@ -129,9 +129,9 @@ export default function App() {
     setWordCount(countWords(content));
     editorRef.current?.setValue(content);
     window.electronAPI.setTitle(getBaseName(filePath) + ' — Typora');
-    // Auto-reveal parent folder in sidebar
-    const folder = filePath.replace(/[\\/][^\\/]*$/, '');
-    setCurrentFolder(folder);
+    // Only update folder if no folder is open, or file is outside current folder
+    const fileFolder = filePath.replace(/[\\/][^\\/]*$/, '');
+    setCurrentFolder(prev => (prev && filePath.startsWith(prev)) ? prev : fileFolder);
   }, [setFile]);
 
   // ── Export ───────────────────────────────────────────────────────────────────

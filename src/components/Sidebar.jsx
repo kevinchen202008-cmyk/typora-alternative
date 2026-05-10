@@ -36,7 +36,6 @@ function Outline({ contentRef, outlineVer }) {
           style={{ paddingLeft: 10 + (h.level - 1) * 14 }}
           title={h.text}
         >
-          <span className="outline-marker">H{h.level}</span>
           <span className="outline-text">{h.text}</span>
         </div>
       ))}
