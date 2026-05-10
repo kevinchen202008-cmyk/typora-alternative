@@ -75,6 +75,19 @@ export default function App() {
   const [wordCount,    setWordCount]    = useState(countWords(WELCOME));
   const [outlineVer,   setOutlineVer]   = useState(0);
 
+  // Expose editor ref globally for Playwright tests
+  // Test helpers: exposed globally for Playwright automation
+  useEffect(() => {
+    window.__editorRef = editorRef;
+    window.__setContent = (text) => {
+      contentRef.current = text;
+      setIsDirty(true);
+      setWordCount(countWords(text));
+      editorRef.current?.setValue(text);
+    };
+    window.__getEditorMode = () => editorRef.current?.getMode?.() ?? 'unknown';
+  }, []);
+
   // Keep file ref in sync
   const setFile = useCallback((p) => { currentFileRef.current = p; setCurrentFile(p); }, []);
 

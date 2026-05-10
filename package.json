@@ -9,22 +9,33 @@
     "build": "vite build",
     "dist": "npm run build && electron-builder",
     "preview": "vite preview",
-    "package": "npm run build && node scripts/package-portable.js"
+    "package": "npm run build && node scripts/package-portable.js",
+    "test": "playwright test",
+    "test:report": "playwright show-report test-results/html"
   },
   "build": {
     "appId": "com.typora.fake",
     "productName": "Typora",
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "electron/**/*"],
-    "win": { "target": "nsis" }
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   },
   "dependencies": {
     "vditor": "^3.10.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@vitejs/plugin-react": "^4.3.0",
     "concurrently": "^8.2.2",
     "electron": "^32.0.0",
+    "playwright": "^1.59.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^5.4.0",

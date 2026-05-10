@@ -37,11 +37,31 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
     getValue() { return vdRef.current?.getValue() ?? ''; },
     getHTML()  { return vdRef.current?.getHTML()  ?? ''; },
     focus()    { vdRef.current?.focus(); },
+    getMode()  { return vdRef.current?.getCurrentMode() ?? 'unknown'; },
     executeFormat(cmd) {
       if (!readyRef.current || !vdRef.current) return;
-      // Trigger Vditor toolbar button by name
       try {
-        const el = vdRef.current.vditor?.toolbar?.elements?.[cmd];
+        const vd = vdRef.current.vditor;
+        // Heading levels: find sub-button inside the headings dropdown
+        if (/^h[1-6]$/.test(cmd)) {
+          const dropdown = vd?.toolbar?.elements?.headings;
+          const btn = dropdown?.querySelector?.(`[data-type="${cmd}"]`);
+          if (btn) { btn.click(); return; }
+          // Fallback: prepend heading markdown on current line
+          const cur = vdRef.current.getValue();
+          const cleaned = cur.replace(/^#{1,6}\s/, '');
+          const prefix = '#'.repeat(Number(cmd[1])) + ' ';
+          vdRef.current.setValue(prefix + cleaned, true);
+          return;
+        }
+        if (cmd === 'p') {
+          // Remove heading markers
+          const cur = vdRef.current.getValue();
+          vdRef.current.setValue(cur.replace(/^#{1,6}\s/, ''), true);
+          return;
+        }
+        // Regular toolbar commands (bold, italic, etc.)
+        const el = vd?.toolbar?.elements?.[cmd];
         if (el) el.children[0]?.click();
       } catch {}
     },
@@ -85,7 +105,14 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
         vdRef.current  = vd;
         readyRef.current = true;
         if (pendingVal.current  !== null) { vd.setValue(pendingVal.current,  true); pendingVal.current  = null; }
-        if (pendingMode.current !== null) { vd.setMode(pendingMode.current);         pendingMode.current = null; }
+        if (pendingMode.current !== null) {
+          try {
+            const btn = vd.vditor?.toolbar?.elements?.['edit-mode']
+              ?.querySelector(`button[data-mode="${pendingMode.current}"]`);
+            if (btn) btn.click();
+          } catch {}
+          pendingMode.current = null;
+        }
         if (pendingTheme.current !== null) {
           const [et, ct] = pendingTheme.current;
           vd.setTheme(et, ct);
@@ -117,13 +144,19 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
     );
   }, [theme]);
 
-  // Mode changes
+  // Mode changes — Vditor has no public setMode(); click the hidden toolbar button instead
   useEffect(() => {
     if (!readyRef.current || !vdRef.current) {
       pendingMode.current = mode;
       return;
     }
-    vdRef.current.setMode(mode ?? 'ir');
+    const targetMode = mode ?? 'ir';
+    if (vdRef.current.getCurrentMode() === targetMode) return;
+    try {
+      const btn = vdRef.current.vditor?.toolbar?.elements?.['edit-mode']
+        ?.querySelector(`button[data-mode="${targetMode}"]`);
+      if (btn) btn.click();
+    } catch {}
   }, [mode]);
 
   return (
