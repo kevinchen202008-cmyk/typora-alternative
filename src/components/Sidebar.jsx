@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const MD_EXTS = new Set(['.md', '.markdown', '.txt', '.mdx']);
 
@@ -43,11 +43,88 @@ function Outline({ contentRef, outlineVer }) {
   );
 }
 
+// ── Context Menu ───────────────────────────────────────────────────────────────
+function ContextMenu({ x, y, item, parentDir, onClose, onRefresh, onFileSelect }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const close = (e) => { if (!ref.current?.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('contextmenu', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('contextmenu', close);
+    };
+  }, [onClose]);
+
+  const action = async (fn) => { onClose(); await fn(); onRefresh(); };
+
+  const newFile = () => action(async () => {
+    const name = window.prompt('New file name:', 'untitled.md');
+    if (!name) return;
+    const fp = await window.electronAPI.fsNewFile(parentDir, name);
+    onFileSelect?.(fp);
+  });
+
+  const newFolder = () => action(async () => {
+    const name = window.prompt('New folder name:', 'New Folder');
+    if (name) await window.electronAPI.fsMkdir(parentDir, name);
+  });
+
+  const rename = () => action(async () => {
+    const cur  = item.name;
+    const name = window.prompt('Rename to:', cur);
+    if (!name || name === cur) return;
+    const newPath = await window.electronAPI.fsRename(item.path, name);
+    if (item.path === newPath) return;
+  });
+
+  const deleteItem = () => action(async () => {
+    const ok = window.confirm(`Move "${item.name}" to Trash?`);
+    if (ok) await window.electronAPI.fsDelete(item.path);
+  });
+
+  const showInExplorer = () => { onClose(); window.electronAPI.showInFolder(item.path); };
+
+  const menuItems = [
+    { label: `📄 New File`,     onClick: newFile    },
+    { label: `📁 New Folder`,   onClick: newFolder  },
+    { type: 'sep' },
+    { label: `✏️ Rename`,        onClick: rename     },
+    { label: `🗑️ Delete`,        onClick: deleteItem, danger: true },
+    { type: 'sep' },
+    { label: `📂 Show in Explorer`, onClick: showInExplorer },
+  ];
+
+  // Clamp position to viewport
+  const style = {
+    position: 'fixed',
+    left: Math.min(x, window.innerWidth  - 200),
+    top:  Math.min(y, window.innerHeight - 220),
+  };
+
+  return (
+    <div ref={ref} className="ctx-menu" style={style}>
+      {menuItems.map((m, i) =>
+        m.type === 'sep'
+          ? <div key={i} className="ctx-sep" />
+          : <button
+              key={i}
+              className={`ctx-item${m.danger ? ' danger' : ''}`}
+              onClick={m.onClick}
+            >{m.label}</button>
+      )}
+    </div>
+  );
+}
+
 // ── File Tree ──────────────────────────────────────────────────────────────────
 function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
   const [rootItems,  setRootItems]  = useState([]);
   const [expanded,   setExpanded]   = useState({});
   const [subItems,   setSubItems]   = useState({});
+  const [refresh,    setRefresh]    = useState(0);
+  const [ctxMenu,    setCtxMenu]    = useState(null); // { x, y, item, parentDir }
 
   const loadDir = useCallback(async (dirPath) => {
     try { return await window.electronAPI.readDirectory(dirPath); }
@@ -56,7 +133,12 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
 
   useEffect(() => {
     if (folder) loadDir(folder).then(setRootItems);
-  }, [folder, loadDir]);
+  }, [folder, loadDir, refresh]);
+
+  const forceRefresh = useCallback(() => {
+    setRefresh(r => r + 1);
+    setSubItems({});
+  }, []);
 
   const toggleDir = useCallback(async (item) => {
     const isOpen = expanded[item.path];
@@ -67,7 +149,13 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
     setExpanded(prev => ({ ...prev, [item.path]: !isOpen }));
   }, [expanded, subItems, loadDir]);
 
-  function renderItems(items, depth = 0) {
+  const openCtxMenu = useCallback((e, item, parentDir) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtxMenu({ x: e.clientX, y: e.clientY, item, parentDir });
+  }, []);
+
+  function renderItems(items, depth = 0, parentDir = folder) {
     return items.map(item => (
       <div key={item.path}>
         <div
@@ -78,16 +166,10 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
           ].join(' ')}
           style={{ paddingLeft: 10 + depth * 16 }}
           onClick={() => {
-            if (item.isDirectory) {
-              toggleDir(item);
-            } else if (MD_EXTS.has(item.ext) || item.ext === '') {
-              onFileSelect(item.path);
-            }
+            if (item.isDirectory) toggleDir(item);
+            else if (MD_EXTS.has(item.ext) || item.ext === '') onFileSelect(item.path);
           }}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            if (!item.isDirectory) window.electronAPI.showInFolder(item.path);
-          }}
+          onContextMenu={e => openCtxMenu(e, item, parentDir)}
         >
           <span className="item-caret">
             {item.isDirectory ? (expanded[item.path] ? '▾' : '▸') : ''}
@@ -96,7 +178,7 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
           <span className="item-name">{item.name}</span>
         </div>
         {item.isDirectory && expanded[item.path] && subItems[item.path] && (
-          <div>{renderItems(subItems[item.path], depth + 1)}</div>
+          <div>{renderItems(subItems[item.path], depth + 1, item.path)}</div>
         )}
       </div>
     ));
@@ -113,11 +195,32 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
 
   return (
     <div className="file-tree">
-      <div className="folder-header" title={folder}>
+      <div
+        className="folder-header"
+        title={folder}
+        onContextMenu={e => openCtxMenu(e, { name: folder.replace(/.*[\\/]/, ''), path: folder, isDirectory: true }, folder)}
+      >
         <span className="folder-icon">📂</span>
         <span className="folder-name">{folder.replace(/.*[\\/]/, '')}</span>
+        <button
+          className="folder-refresh"
+          onClick={forceRefresh}
+          title="Refresh"
+        >↺</button>
       </div>
       <div className="file-list">{renderItems(rootItems)}</div>
+
+      {ctxMenu && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          item={ctxMenu.item}
+          parentDir={ctxMenu.parentDir}
+          onClose={() => setCtxMenu(null)}
+          onRefresh={forceRefresh}
+          onFileSelect={onFileSelect}
+        />
+      )}
     </div>
   );
 }

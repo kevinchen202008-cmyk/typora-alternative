@@ -2,7 +2,6 @@ import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Vditor from 'vditor';
 import 'vditor/dist/index.css';
 
-// Local vditor assets (copied to public/ by postinstall script)
 const CDN = './vditor';
 
 const TOOLBAR = [
@@ -17,7 +16,7 @@ const TOOLBAR = [
   },
 ];
 
-const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
+const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterMode, currentFile, onChange }, ref) => {
   const containerRef  = useRef(null);
   const vdRef         = useRef(null);
   const readyRef      = useRef(false);
@@ -25,7 +24,7 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
   const pendingMode   = useRef(null);
   const pendingTheme  = useRef(null);
 
-  // Expose imperative API to parent (App)
+  // Expose imperative API to parent
   useImperativeHandle(ref, () => ({
     setValue(content) {
       if (readyRef.current && vdRef.current) {
@@ -42,32 +41,28 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
       if (!readyRef.current || !vdRef.current) return;
       try {
         const vd = vdRef.current.vditor;
-        // Heading levels: find sub-button inside the headings dropdown
         if (/^h[1-6]$/.test(cmd)) {
           const dropdown = vd?.toolbar?.elements?.headings;
           const btn = dropdown?.querySelector?.(`[data-type="${cmd}"]`);
           if (btn) { btn.click(); return; }
-          // Fallback: prepend heading markdown on current line
-          const cur = vdRef.current.getValue();
+          const cur     = vdRef.current.getValue();
           const cleaned = cur.replace(/^#{1,6}\s/, '');
-          const prefix = '#'.repeat(Number(cmd[1])) + ' ';
+          const prefix  = '#'.repeat(Number(cmd[1])) + ' ';
           vdRef.current.setValue(prefix + cleaned, true);
           return;
         }
         if (cmd === 'p') {
-          // Remove heading markers
           const cur = vdRef.current.getValue();
           vdRef.current.setValue(cur.replace(/^#{1,6}\s/, ''), true);
           return;
         }
-        // Regular toolbar commands (bold, italic, etc.)
         const el = vd?.toolbar?.elements?.[cmd];
         if (el) el.children[0]?.click();
       } catch {}
     },
   }));
 
-  // Initialize Vditor once
+  // ── Initialize Vditor once ────────────────────────────────────────────────────
   useEffect(() => {
     const vditorTheme  = theme === 'dark' ? 'dark' : 'classic';
     const contentTheme = theme === 'dark' ? 'dark' : (theme === 'github' ? 'github' : 'light');
@@ -90,21 +85,17 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
           current: contentTheme,
           path:    `${CDN}/dist/css/content-theme`,
         },
-        hljs: {
-          enable:     true,
-          style:      hlTheme,
-          lineNumber: true,
-        },
-        math: {
-          inlineDigit: true,
-          engine:      'KaTeX',
-        },
+        hljs: { enable: true, style: hlTheme, lineNumber: true },
+        math: { inlineDigit: true, engine: 'KaTeX' },
         mermaid: { zoom: 1.0 },
       },
       after() {
-        vdRef.current  = vd;
+        vdRef.current    = vd;
         readyRef.current = true;
-        if (pendingVal.current  !== null) { vd.setValue(pendingVal.current,  true); pendingVal.current  = null; }
+        if (pendingVal.current  !== null) {
+          vd.setValue(pendingVal.current, true);
+          pendingVal.current = null;
+        }
         if (pendingMode.current !== null) {
           try {
             const btn = vd.vditor?.toolbar?.elements?.['edit-mode']
@@ -118,6 +109,13 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
           vd.setTheme(et, ct);
           pendingTheme.current = null;
         }
+
+        // ── F01: Image paste & drop ─────────────────────────────────────────────
+        const ce = containerRef.current;
+        if (ce) {
+          ce.addEventListener('paste', handleImagePaste, true);
+          ce.addEventListener('drop',  handleImageDrop,  true);
+        }
       },
       input(value) { onChange?.(value); },
     });
@@ -125,11 +123,54 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
     return () => {
       readyRef.current = false;
       vdRef.current    = null;
+      const ce = containerRef.current;
+      if (ce) {
+        ce.removeEventListener('paste', handleImagePaste, true);
+        ce.removeEventListener('drop',  handleImageDrop,  true);
+      }
       vd.destroy();
     };
-  }, []); // only once — prop changes handled via effects below
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Theme changes
+  // ── Image helpers (closures read currentFile via ref) ─────────────────────────
+  const currentFileRef = useRef(currentFile);
+  useEffect(() => { currentFileRef.current = currentFile; }, [currentFile]);
+
+  async function saveImageFile(file) {
+    const buf    = await file.arrayBuffer();
+    const bytes  = new Uint8Array(buf);
+    let binary   = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+    const rawExt = file.type.split('/')[1] || 'png';
+    const ext    = '.' + rawExt.replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+    return window.electronAPI.saveImage({ base64, ext, currentFile: currentFileRef.current });
+  }
+
+  async function handleImagePaste(e) {
+    const items = [...(e.clipboardData?.items || [])];
+    const imgItem = items.find(i => i.kind === 'file' && i.type.startsWith('image/'));
+    if (!imgItem) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const file = imgItem.getAsFile();
+    if (!file || !vdRef.current) return;
+    const rel = await saveImageFile(file);
+    vdRef.current.insertValue(`![](${rel})`);
+  }
+
+  async function handleImageDrop(e) {
+    const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    e.preventDefault();
+    e.stopPropagation();
+    for (const file of files) {
+      const rel = await saveImageFile(file);
+      vdRef.current?.insertValue(`![](${rel})\n`);
+    }
+  }
+
+  // ── Theme changes ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!readyRef.current || !vdRef.current) {
       pendingTheme.current = [
@@ -144,7 +185,7 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
     );
   }, [theme]);
 
-  // Mode changes — Vditor has no public setMode(); click the hidden toolbar button instead
+  // ── Mode changes — Vditor has no public setMode(); click toolbar button ───────
   useEffect(() => {
     if (!readyRef.current || !vdRef.current) {
       pendingMode.current = mode;
@@ -158,6 +199,55 @@ const Editor = forwardRef(({ initialContent, theme, mode, onChange }, ref) => {
       if (btn) btn.click();
     } catch {}
   }, [mode]);
+
+  // ── F06: Focus Mode — track cursor block ─────────────────────────────────────
+  useEffect(() => {
+    const ce = containerRef.current?.querySelector('[contenteditable="true"]');
+    if (!ce) return;
+
+    if (!focusMode) {
+      [...ce.children].forEach(el => el.classList.remove('focus-block'));
+      return;
+    }
+
+    const track = () => {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      let node = sel.getRangeAt(0).startContainer;
+      while (node && node.parentElement !== ce) node = node.parentElement;
+      [...ce.children].forEach(el => el.classList.remove('focus-block'));
+      if (node?.nodeType === 1) node.classList.add('focus-block');
+    };
+
+    document.addEventListener('selectionchange', track);
+    return () => document.removeEventListener('selectionchange', track);
+  }, [focusMode]);
+
+  // ── F06: Typewriter Mode — scroll cursor line to center ───────────────────────
+  useEffect(() => {
+    const ce = containerRef.current?.querySelector('[contenteditable="true"]');
+    if (!ce || !typewriterMode) return;
+
+    const scroll = () => {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0).cloneRange();
+      range.collapse(true);
+      const rects = range.getClientRects();
+      if (!rects.length) return;
+      const rect    = rects[0];
+      const ceRect  = ce.getBoundingClientRect();
+      const target  = ce.scrollTop + (rect.top - ceRect.top) - ce.clientHeight / 2;
+      ce.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    };
+
+    ce.addEventListener('keyup',    scroll);
+    ce.addEventListener('mouseup',  scroll);
+    return () => {
+      ce.removeEventListener('keyup',   scroll);
+      ce.removeEventListener('mouseup', scroll);
+    };
+  }, [typewriterMode]);
 
   return (
     <div className="editor-wrapper">

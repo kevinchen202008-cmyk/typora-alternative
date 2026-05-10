@@ -14,27 +14,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportHtml:       (html, name)     => ipcRenderer.invoke('export-html', html, name),
   printToPdf:       (opts)           => ipcRenderer.invoke('print-to-pdf', opts),
 
+  // F01: Image save
+  saveImage:        (data)           => ipcRenderer.invoke('save-image', data),
+
+  // F05: Sidebar file ops
+  fsRename:         (oldPath, name)  => ipcRenderer.invoke('fs-rename', oldPath, name),
+  fsDelete:         (filePath)       => ipcRenderer.invoke('fs-delete', filePath),
+  fsMkdir:          (parent, name)   => ipcRenderer.invoke('fs-mkdir', parent, name),
+  fsNewFile:        (parent, name)   => ipcRenderer.invoke('fs-new-file', parent, name),
+
+  // F08: Word export
+  exportDocx:       (md, name)       => ipcRenderer.invoke('export-docx', md, name),
+
+  // F09: Custom CSS
+  pickCssFile:      ()               => ipcRenderer.invoke('pick-css-file'),
+
   // Window controls
   minimize: () => ipcRenderer.send('win-minimize'),
   maximize: () => ipcRenderer.send('win-maximize'),
   close:    () => ipcRenderer.send('win-close'),
 
-  // Signal renderer is ready (so main can open pending file)
   rendererReady: () => ipcRenderer.send('renderer-ready'),
 
-  // Menu / main → renderer events  (each returns a cleanup fn)
-  onFileOpened:       (cb) => on('file-opened',        (_, d) => cb(d)),
-  onMenuNewFile:      (cb) => on('menu-new-file',      ()     => cb()),
-  onMenuSave:         (cb) => on('menu-save',          ()     => cb()),
-  onMenuSaveAs:       (cb) => on('menu-save-as',       ()     => cb()),
-  onMenuOpenFolder:   (cb) => on('menu-open-folder',   (_, p) => cb(p)),
-  onMenuToggleSource: (cb) => on('menu-toggle-source', ()     => cb()),
-  onMenuToggleSidebar:(cb) => on('menu-toggle-sidebar',()     => cb()),
-  onMenuToggleOutline:(cb) => on('menu-toggle-outline',()     => cb()),
-  onMenuSetTheme:     (cb) => on('menu-set-theme',     (_, t) => cb(t)),
-  onMenuExport:       (cb) => on('menu-export',        (_, f) => cb(f)),
-  onMenuFormat:       (cb) => on('menu-format',        (_, c) => cb(c)),
-  onMenuFind:         (cb) => on('menu-find',          ()     => cb()),
+  // Menu → renderer events (each returns a cleanup fn)
+  onFileOpened:          (cb) => on('file-opened',           (_, d) => cb(d)),
+  onMenuNewFile:         (cb) => on('menu-new-file',         ()     => cb()),
+  onMenuSave:            (cb) => on('menu-save',             ()     => cb()),
+  onMenuSaveAs:          (cb) => on('menu-save-as',          ()     => cb()),
+  onMenuOpenFolder:      (cb) => on('menu-open-folder',      (_, p) => cb(p)),
+  onMenuToggleSource:    (cb) => on('menu-toggle-source',    ()     => cb()),
+  onMenuToggleSidebar:   (cb) => on('menu-toggle-sidebar',   ()     => cb()),
+  onMenuToggleOutline:   (cb) => on('menu-toggle-outline',   ()     => cb()),
+  onMenuSetTheme:        (cb) => on('menu-set-theme',        (_, t) => cb(t)),
+  onMenuExport:          (cb) => on('menu-export',           (_, f) => cb(f)),
+  onMenuFormat:          (cb) => on('menu-format',           (_, c) => cb(c)),
+  onMenuFind:            (cb) => on('menu-find',             (_, r) => cb(r)),
+  onMenuToggleFocus:     (cb) => on('menu-toggle-focus',     ()     => cb()),
+  onMenuToggleTypewriter:(cb) => on('menu-toggle-typewriter',()     => cb()),
+  onMenuSettings:        (cb) => on('menu-settings',         ()     => cb()),
 });
 
 function on(channel, handler) {

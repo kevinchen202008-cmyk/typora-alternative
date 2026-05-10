@@ -1,4 +1,8 @@
-export default function StatusBar({ currentFile, isDirty, wordCount, mode, onToggleSidebar, onToggleMode }) {
+export default function StatusBar({
+  currentFile, isDirty, wordCount, mode,
+  focusMode, typewriterMode,
+  onToggleSidebar, onToggleMode, onToggleFocus, onToggleTypewriter,
+}) {
   const name      = currentFile ? currentFile.replace(/.*[\\/]/, '') : 'Untitled';
   const modeLabel = mode === 'ir' ? 'Live Preview' : mode === 'sv' ? 'Split View' : 'WYSIWYG';
 
@@ -22,6 +26,17 @@ export default function StatusBar({ currentFile, isDirty, wordCount, mode, onTog
       <div className="sb-right">
         <span className="sb-stat">{wordCount.words} words</span>
         <span className="sb-stat">{wordCount.chars} chars</span>
+        <span className="sb-divider" />
+        <button
+          className={`sb-btn sb-focus${focusMode ? ' sb-active' : ''}`}
+          onClick={onToggleFocus}
+          title="Focus Mode (Ctrl+Shift+F)"
+        >Focus</button>
+        <button
+          className={`sb-btn sb-typewriter${typewriterMode ? ' sb-active' : ''}`}
+          onClick={onToggleTypewriter}
+          title="Typewriter Mode (Ctrl+Shift+Y)"
+        >Type</button>
         <span className="sb-divider" />
         <button className="sb-btn sb-mode" onClick={onToggleMode} title="Toggle Source Mode (Ctrl+/)">
           {modeLabel}
