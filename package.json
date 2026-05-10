@@ -1,0 +1,32 @@
+{
+  "name": "typora-fake",
+  "version": "1.0.0",
+  "description": "A Typora-like Markdown editor for Windows",
+  "main": "electron/main.js",
+  "scripts": {
+    "postinstall": "node scripts/copy-vditor.js",
+    "dev": "concurrently -k -n VITE,ELECTRON -c cyan,yellow \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build",
+    "dist": "npm run build && electron-builder",
+    "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.typora.fake",
+    "productName": "Typora",
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "electron/**/*"],
+    "win": { "target": "nsis" }
+  },
+  "dependencies": {
+    "vditor": "^3.10.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "electron": "^32.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^5.4.0",
+    "wait-on": "^7.2.0"
+  }
+}
