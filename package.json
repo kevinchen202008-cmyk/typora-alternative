@@ -8,7 +8,8 @@
     "dev": "concurrently -k -n VITE,ELECTRON -c cyan,yellow \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build",
     "dist": "npm run build && electron-builder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "npm run build && node scripts/package-portable.js"
   },
   "build": {
     "appId": "com.typora.fake",
