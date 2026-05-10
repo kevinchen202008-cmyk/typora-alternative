@@ -52,6 +52,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuToggleFocus:     (cb) => on('menu-toggle-focus',     ()     => cb()),
   onMenuToggleTypewriter:(cb) => on('menu-toggle-typewriter',()     => cb()),
   onMenuSettings:        (cb) => on('menu-settings',         ()     => cb()),
+  onMenuNewTab:          (cb) => on('menu-new-tab',          ()     => cb()),
+  onMenuCloseTab:        (cb) => on('menu-close-tab',        ()     => cb()),
+  onUpdateAvailable:     (cb) => on('update-available',      (_, d) => cb(d)),
 });
 
 function on(channel, handler) {

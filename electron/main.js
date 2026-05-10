@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell, net } = require('electron');
 const path = require('path');
 const fs   = require('fs');
 const { spawn } = require('child_process');
@@ -63,6 +63,9 @@ function buildMenu() {
       label: 'File',
       submenu: [
         { label: 'New',            accelerator: 'CmdOrCtrl+N',        click: () => send('menu-new-file') },
+        { label: 'New Tab',        accelerator: 'CmdOrCtrl+T',        click: () => send('menu-new-tab') },
+        { label: 'Close Tab',      accelerator: 'CmdOrCtrl+W',        click: () => send('menu-close-tab') },
+        { type: 'separator' },
         { label: 'Open...',        accelerator: 'CmdOrCtrl+O',        click: cmdOpen },
         { label: 'Open Folder...', accelerator: 'CmdOrCtrl+Shift+O',  click: cmdOpenFolder },
         {
@@ -374,7 +377,37 @@ ipcMain.once('renderer-ready', () => {
   if (config.lastFolder && fs.existsSync(config.lastFolder)) {
     send('menu-open-folder', config.lastFolder);
   }
+
+  // Update detection (F11)
+  checkForUpdate();
 });
+
+// ── Update detection (F11) ────────────────────────────────────────────────────
+const CURRENT_VERSION = '1.0.0';
+const RELEASE_API     = 'https://api.github.com/repos/typora-alternative/typora-alternative/releases/latest';
+
+function checkForUpdate() {
+  try {
+    const req = net.request({ url: RELEASE_API, method: 'GET' });
+    req.setHeader('User-Agent', 'typora-alternative/' + CURRENT_VERSION);
+    req.on('response', (res) => {
+      let body = '';
+      res.on('data', chunk => { body += chunk.toString(); });
+      res.on('end', () => {
+        try {
+          const data    = JSON.parse(body);
+          const latest  = (data.tag_name || '').replace(/^v/, '');
+          const current = CURRENT_VERSION.split('.').map(Number);
+          const remote  = latest.split('.').map(Number);
+          const isNewer = remote.some((n, i) => n > (current[i] || 0) && current.slice(0, i).every((c, j) => c === remote[j]));
+          if (isNewer) send('update-available', { version: latest, url: data.html_url || '' });
+        } catch {}
+      });
+    });
+    req.on('error', () => {});
+    req.end();
+  } catch {}
+}
 
 // ── App lifecycle ──────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
