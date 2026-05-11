@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Goal: feature-complete local Windows Markdown editor identical to Typora.
+Directory was renamed from `typora-fake` → `typora-alternative` on 2026-05-10.
 
 ## Commands
 
@@ -10,9 +11,14 @@ npm run build    # Build renderer only (Vite → dist/)
 ```
 
 First-time setup requires Electron binary to download. If GitHub is blocked, `.npmrc` already sets:
+
 ```
 electron_mirror=https://npmmirror.com/mirrors/electron/
 ```
+
+**Known setup issues:**
+- `electron-builder@24` is incompatible with npm v11 (`Invalid Version` from `app-builder-bin@4.0.0`) — removed from deps, do not re-add
+- After `npm install`, `node_modules/electron/` may appear empty until the binary finishes downloading — this is normal
 
 ## Architecture
 
@@ -23,6 +29,7 @@ electron_mirror=https://npmmirror.com/mirrors/electron/
 - **Preload** (`electron/preload.js`) — Runs in an isolated context. Exposes `window.electronAPI` via `contextBridge`. Every IPC channel is registered here.
 
 **Data flow:**
+
 1. Menu clicks → `ipcMain.send()` to renderer → `window.electronAPI.onMenuXxx(cb)` listeners in `App.jsx`
 2. File operations → renderer calls `window.electronAPI.readFile()` / `writeFile()` → main process handles via `ipcMain.handle()`
 3. Content changes → Editor calls `onChange(value)` → App stores in `contentRef` (ref, not state) to avoid re-renders; word count via state is debounced
@@ -40,6 +47,7 @@ Vditor loads dynamic resources (syntax highlight themes, KaTeX, Mermaid) from a 
 **Themes:** Three modes — `light`, `dark`, `github`. Applied via `data-theme` attribute on `<html>`. CSS variables in `app.css` handle sidebar/statusbar colors. Vditor's own theme is updated via `vdRef.current.setTheme()`.
 
 **Editor modes:**
+
 - `ir` — Instant Rendering (Typora-like, default). Markdown syntax collapses into formatted view as you type.
 - `sv` — Split View (raw markdown left, preview right).
 - `wysiwyg` — Full WYSIWYG (no markdown syntax visible).

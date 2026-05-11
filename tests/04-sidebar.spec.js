@@ -63,3 +63,36 @@ test('Files tab shows empty state or file tree', async () => {
   const fileTree   = await page.locator('.file-tree').isVisible().catch(() => false);
   expect(emptyState || fileTree).toBe(true);
 });
+
+test('clicking outline heading scrolls editor to that heading', async () => {
+  const filler = Array(40).fill('Paragraph text to create enough height for scrolling.').join('\n\n');
+  const content = `# Top Heading\n\n${filler}\n\n## Target Section\n\nContent after target.`;
+
+  await setEditorContent(page, content);
+  await page.waitForTimeout(1200); // outline debounce
+
+  // Switch to Outline tab
+  await page.evaluate(() =>
+    [...document.querySelectorAll('.stab')].find(b => b.textContent === 'Outline')?.click()
+  );
+  await page.waitForTimeout(300);
+
+  // Find the active pre (vditor-wysiwyg's pre appears first in DOM but is empty)
+  const getActivePre = `[...document.querySelectorAll('pre.vditor-reset')].find(el => el.children.length > 0)`;
+  const getScrollTop = () => page.evaluate(
+    (sel) => { const pre = eval(sel); return pre?.scrollTop ?? 0; }, getActivePre
+  );
+
+  const scrollBefore = await getScrollTop();
+
+  // Click the "Target Section" outline item
+  await page.evaluate(() => {
+    const item = [...document.querySelectorAll('.outline-item')]
+      .find(el => el.textContent.includes('Target Section'));
+    item?.click();
+  });
+  await page.waitForTimeout(1000); // smooth scroll settles
+
+  const scrollAfter = await getScrollTop();
+  expect(scrollAfter).toBeGreaterThan(scrollBefore);
+});

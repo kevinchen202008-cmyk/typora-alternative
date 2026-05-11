@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 
 const MD_EXTS = new Set(['.md', '.markdown', '.txt', '.mdx']);
 
@@ -16,7 +17,8 @@ function parseHeadings(text) {
   return result;
 }
 
-function Outline({ contentRef, outlineVer }) {
+function Outline({ contentRef, outlineVer, onHeadingClick }) {
+  const { t } = useI18n();
   const [headings, setHeadings] = useState([]);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ function Outline({ contentRef, outlineVer }) {
   }, [outlineVer, contentRef]);
 
   if (headings.length === 0) {
-    return <div className="sidebar-empty"><p>No headings found.</p></div>;
+    return <div className="sidebar-empty"><p>{t('noHeadings')}</p></div>;
   }
 
   return (
@@ -35,6 +37,7 @@ function Outline({ contentRef, outlineVer }) {
           className={`outline-item lv${h.level}`}
           style={{ paddingLeft: 10 + (h.level - 1) * 14 }}
           title={h.text}
+          onClick={() => onHeadingClick?.(h.level, h.text)}
         >
           <span className="outline-text">{h.text}</span>
         </div>
@@ -45,6 +48,7 @@ function Outline({ contentRef, outlineVer }) {
 
 // ── Context Menu ───────────────────────────────────────────────────────────────
 function ContextMenu({ x, y, item, parentDir, onClose, onRefresh, onFileSelect }) {
+  const { t } = useI18n();
   const ref = useRef(null);
 
   useEffect(() => {
@@ -60,40 +64,40 @@ function ContextMenu({ x, y, item, parentDir, onClose, onRefresh, onFileSelect }
   const action = async (fn) => { onClose(); await fn(); onRefresh(); };
 
   const newFile = () => action(async () => {
-    const name = window.prompt('New file name:', 'untitled.md');
+    const name = window.prompt(t('promptNewFileName'), t('promptDefaultFile'));
     if (!name) return;
     const fp = await window.electronAPI.fsNewFile(parentDir, name);
     onFileSelect?.(fp);
   });
 
   const newFolder = () => action(async () => {
-    const name = window.prompt('New folder name:', 'New Folder');
+    const name = window.prompt(t('promptNewFolderName'), t('promptDefaultFolder'));
     if (name) await window.electronAPI.fsMkdir(parentDir, name);
   });
 
   const rename = () => action(async () => {
     const cur  = item.name;
-    const name = window.prompt('Rename to:', cur);
+    const name = window.prompt(t('promptRenameTitle'), cur);
     if (!name || name === cur) return;
     const newPath = await window.electronAPI.fsRename(item.path, name);
     if (item.path === newPath) return;
   });
 
   const deleteItem = () => action(async () => {
-    const ok = window.confirm(`Move "${item.name}" to Trash?`);
+    const ok = window.confirm(t('confirmDelete', { name: item.name }));
     if (ok) await window.electronAPI.fsDelete(item.path);
   });
 
   const showInExplorer = () => { onClose(); window.electronAPI.showInFolder(item.path); };
 
   const menuItems = [
-    { label: `📄 New File`,     onClick: newFile    },
-    { label: `📁 New Folder`,   onClick: newFolder  },
+    { label: `📄 ${t('ctxNewFile')}`,          onClick: newFile    },
+    { label: `📁 ${t('ctxNewFolder')}`,         onClick: newFolder  },
     { type: 'sep' },
-    { label: `✏️ Rename`,        onClick: rename     },
-    { label: `🗑️ Delete`,        onClick: deleteItem, danger: true },
+    { label: `✏️ ${t('ctxRename')}`,             onClick: rename     },
+    { label: `🗑️ ${t('ctxDelete')}`,             onClick: deleteItem, danger: true },
     { type: 'sep' },
-    { label: `📂 Show in Explorer`, onClick: showInExplorer },
+    { label: `📂 ${t('ctxShowInExplorer')}`,    onClick: showInExplorer },
   ];
 
   // Clamp position to viewport
@@ -120,6 +124,7 @@ function ContextMenu({ x, y, item, parentDir, onClose, onRefresh, onFileSelect }
 
 // ── File Tree ──────────────────────────────────────────────────────────────────
 function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
+  const { t } = useI18n();
   const [rootItems,  setRootItems]  = useState([]);
   const [expanded,   setExpanded]   = useState({});
   const [subItems,   setSubItems]   = useState({});
@@ -187,8 +192,8 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
   if (!folder) {
     return (
       <div className="sidebar-empty">
-        <p>No folder opened.</p>
-        <button className="btn-secondary" onClick={onFolderOpen}>Open Folder</button>
+        <p>{t('noFolderOpened')}</p>
+        <button className="btn-secondary" onClick={onFolderOpen}>{t('btnOpenFolder')}</button>
       </div>
     );
   }
@@ -205,7 +210,7 @@ function FileTree({ folder, currentFile, onFileSelect, onFolderOpen }) {
         <button
           className="folder-refresh"
           onClick={forceRefresh}
-          title="Refresh"
+          title={t('btnRefresh')}
         >↺</button>
       </div>
       <div className="file-list">{renderItems(rootItems)}</div>
@@ -235,17 +240,18 @@ function fileIcon(ext) {
 }
 
 // ── Sidebar shell ──────────────────────────────────────────────────────────────
-export default function Sidebar({ tab, onTabChange, currentFolder, currentFile, contentRef, outlineVer, onFileSelect, onFolderOpen }) {
+export default function Sidebar({ tab, onTabChange, currentFolder, currentFile, contentRef, outlineVer, onFileSelect, onFolderOpen, onHeadingClick }) {
+  const { t } = useI18n();
   return (
     <aside className="sidebar">
       <div className="sidebar-tabs">
-        <button className={`stab${tab === 'files'   ? ' active' : ''}`} onClick={() => onTabChange('files')}>Files</button>
-        <button className={`stab${tab === 'outline' ? ' active' : ''}`} onClick={() => onTabChange('outline')}>Outline</button>
+        <button className={`stab${tab === 'files'   ? ' active' : ''}`} onClick={() => onTabChange('files')}>{t('tabFiles')}</button>
+        <button className={`stab${tab === 'outline' ? ' active' : ''}`} onClick={() => onTabChange('outline')}>{t('tabOutline')}</button>
       </div>
       <div className="sidebar-body">
         {tab === 'files'
           ? <FileTree folder={currentFolder} currentFile={currentFile} onFileSelect={onFileSelect} onFolderOpen={onFolderOpen} />
-          : <Outline contentRef={contentRef} outlineVer={outlineVer} />
+          : <Outline contentRef={contentRef} outlineVer={outlineVer} onHeadingClick={onHeadingClick} />
         }
       </div>
     </aside>

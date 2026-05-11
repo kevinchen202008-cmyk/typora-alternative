@@ -5,6 +5,7 @@ import StatusBar     from './components/StatusBar';
 import TabBar        from './components/TabBar';
 import FindReplace   from './components/FindReplace';
 import SettingsPanel from './components/SettingsPanel';
+import { useI18n }   from './i18n/I18nContext';
 
 const WELCOME = `# Welcome to Typora
 A clean, minimal Markdown editor — just start writing.
@@ -50,6 +51,7 @@ function countWords(text) {
 }
 
 export default function App() {
+  const { t, lang, setLang } = useI18n();
   const editorRef      = useRef(null);
   const contentRef     = useRef(WELCOME);
   const currentFileRef = useRef(null);
@@ -157,7 +159,7 @@ export default function App() {
   const closeTab = useCallback((idx) => {
     const tab = tabsRef.current[idx];
     const liveIsDirty = idx === activeIdxRef.current ? isDirtyRef.current : tab.isDirty;
-    if (liveIsDirty && !window.confirm(`Close "${tab.title}" without saving?`)) return;
+    if (liveIsDirty && !window.confirm(t('closeTabConfirm', { title: tab.title }))) return;
 
     if (tabsRef.current.length === 1) {
       // Reset to empty rather than close
@@ -305,7 +307,7 @@ export default function App() {
       await window.electronAPI.printToPdf({ name: baseName });
     } else if (format === 'docx') {
       const res = await window.electronAPI.exportDocx(contentRef.current, baseName);
-      if (!res.success) alert('Word export failed:\n' + (res.error || 'Unknown error'));
+      if (!res.success) alert(t('wordExportFailed', { error: res.error || 'Unknown error' }));
     }
   }, []);
 
@@ -374,6 +376,7 @@ export default function App() {
       window.electronAPI.onMenuToggleTypewriter(() => setTypewriterMode(v => { window.electronAPI.updateConfig({ typewriterMode: !v }); return !v; })),
       window.electronAPI.onMenuSettings(() => setShowSettings(true)),
       window.electronAPI.onUpdateAvailable((info) => setUpdateBanner(info)),
+      window.electronAPI.onMenuSetLanguage((lang) => setLang(lang)),
     ];
 
     window.electronAPI.rendererReady();
@@ -432,6 +435,7 @@ export default function App() {
           outlineVer={outlineVer}
           onFileSelect={handleSidebarFileSelect}
           onFolderOpen={handleSidebarFolderOpen}
+          onHeadingClick={(level, text) => editorRef.current?.scrollToHeading(level, text)}
         />
       )}
 
@@ -448,8 +452,8 @@ export default function App() {
         <div className="editor-area">
           {updateBanner && (
             <div className="update-banner">
-              ✨ v{updateBanner.version} available —{' '}
-              <a href={updateBanner.url} target="_blank" rel="noreferrer">View on GitHub</a>
+              ✨ {t('updateAvailable', { version: updateBanner.version })}{' '}
+              <a href={updateBanner.url} target="_blank" rel="noreferrer">{t('viewOnGitHub')}</a>
               <button onClick={() => setUpdateBanner(null)}>✕</button>
             </div>
           )}
@@ -483,6 +487,8 @@ export default function App() {
           onToggleMode={() => setMode(m => m === 'ir' ? 'sv' : 'ir')}
           onToggleFocus={() => setFocusMode(v => { window.electronAPI.updateConfig({ focusMode: !v }); return !v; })}
           onToggleTypewriter={() => setTypewriterMode(v => { window.electronAPI.updateConfig({ typewriterMode: !v }); return !v; })}
+          lang={lang}
+          onToggleLang={() => setLang(lang === 'en' ? 'zh' : 'en')}
         />
       </div>
 

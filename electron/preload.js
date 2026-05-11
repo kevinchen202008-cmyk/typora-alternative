@@ -55,6 +55,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuNewTab:          (cb) => on('menu-new-tab',          ()     => cb()),
   onMenuCloseTab:        (cb) => on('menu-close-tab',        ()     => cb()),
   onUpdateAvailable:     (cb) => on('update-available',      (_, d) => cb(d)),
+  onMenuSetLanguage:     (cb) => on('menu-set-language',      (_, l) => cb(l)),
 });
 
 function on(channel, handler) {

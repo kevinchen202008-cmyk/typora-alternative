@@ -1,0 +1,82 @@
+export default {
+  // common
+  untitled: 'Untitled',
+  closeTabConfirm: 'Close "{title}" without saving?',
+  wordExportFailed: 'Word export failed:\n{error}',
+  updateAvailable: 'v{version} available —',
+  viewOnGitHub: 'View on GitHub',
+
+  // editor
+  placeholder: 'Start writing…',
+
+  // sidebar
+  tabFiles: 'Files',
+  tabOutline: 'Outline',
+  noHeadings: 'No headings found.',
+  noFolderOpened: 'No folder opened.',
+  btnOpenFolder: 'Open Folder',
+  ctxNewFile: 'New File',
+  ctxNewFolder: 'New Folder',
+  ctxRename: 'Rename',
+  ctxDelete: 'Delete',
+  ctxShowInExplorer: 'Show in Explorer',
+  btnRefresh: 'Refresh',
+  promptNewFileName: 'New file name:',
+  promptDefaultFile: 'untitled.md',
+  promptNewFolderName: 'New folder name:',
+  promptDefaultFolder: 'New Folder',
+  promptRenameTitle: 'Rename to:',
+  confirmDelete: 'Move "{name}" to Trash?',
+
+  // status bar
+  modeLivePreview: 'Live Preview',
+  modeSplitView: 'Split View',
+  modeWysiwyg: 'WYSIWYG',
+  toggleSidebarTitle: 'Toggle Sidebar (Ctrl+Shift+L)',
+  unsavedChanges: 'Unsaved changes',
+  wordCount: '{n} words',
+  charCount: '{n} chars',
+  focusModeTitle: 'Focus Mode (Ctrl+Shift+F)',
+  focusModeLabel: 'Focus',
+  typewriterModeTitle: 'Typewriter Mode (Ctrl+Shift+Y)',
+  typewriterModeLabel: 'Type',
+  toggleSourceTitle: 'Toggle Source Mode (Ctrl+/)',
+  langToggleTitle: 'Switch to Chinese',
+  langLabel: 'EN',
+
+  // tab bar
+  closeTabTitle: 'Close tab',
+  newTabTitle: 'New Tab (Ctrl+T)',
+  unsavedLabel: 'Unsaved',
+
+  // find / replace
+  findPlaceholder: 'Find…',
+  noMatches: 'No matches',
+  matchCount: '{n} matches',
+  prevTitle: 'Previous (Shift+Enter)',
+  nextTitle: 'Next (Enter)',
+  toggleReplaceTitle: 'Toggle replace',
+  caseSensitiveTitle: 'Case Sensitive',
+  closeTitle: 'Close (Esc)',
+  replacePlaceholder: 'Replace with…',
+  replaceAll: 'Replace All',
+
+  // settings panel
+  settingsTitle: 'Settings',
+  sectionEditor: 'Editor',
+  labelFontFamily: 'Font Family',
+  labelFontSize: 'Font Size',
+  fontSystemDefault: 'System Default',
+  fontGeorgia: 'Georgia (Serif)',
+  fontMonospace: 'Monospace',
+  sectionCustomTheme: 'Custom Theme',
+  labelCustomCss: 'Custom CSS',
+  cssPlaceholder: 'Path to custom .css file…',
+  btnBrowse: 'Browse',
+  btnClear: 'Clear',
+  btnCancel: 'Cancel',
+  btnSave: 'Save',
+  sectionLanguage: 'Language',
+  langEnglish: 'English',
+  langChinese: '中文',
+};

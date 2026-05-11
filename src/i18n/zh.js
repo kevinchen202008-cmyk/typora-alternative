@@ -1,0 +1,82 @@
+export default {
+  // common
+  untitled: '未命名',
+  closeTabConfirm: '关闭「{title}」而不保存？',
+  wordExportFailed: 'Word 导出失败：\n{error}',
+  updateAvailable: 'v{version} 可更新 —',
+  viewOnGitHub: '在 GitHub 查看',
+
+  // editor
+  placeholder: '开始写作…',
+
+  // sidebar
+  tabFiles: '文件',
+  tabOutline: '大纲',
+  noHeadings: '未找到标题。',
+  noFolderOpened: '未打开文件夹。',
+  btnOpenFolder: '打开文件夹',
+  ctxNewFile: '新建文件',
+  ctxNewFolder: '新建文件夹',
+  ctxRename: '重命名',
+  ctxDelete: '删除',
+  ctxShowInExplorer: '在资源管理器中显示',
+  btnRefresh: '刷新',
+  promptNewFileName: '新建文件名：',
+  promptDefaultFile: 'untitled.md',
+  promptNewFolderName: '新建文件夹名：',
+  promptDefaultFolder: '新文件夹',
+  promptRenameTitle: '重命名为：',
+  confirmDelete: '将「{name}」移至回收站？',
+
+  // status bar
+  modeLivePreview: '即时预览',
+  modeSplitView: '分屏视图',
+  modeWysiwyg: '所见即所得',
+  toggleSidebarTitle: '切换侧栏 (Ctrl+Shift+L)',
+  unsavedChanges: '未保存的更改',
+  wordCount: '{n} 字',
+  charCount: '{n} 字符',
+  focusModeTitle: '专注模式 (Ctrl+Shift+F)',
+  focusModeLabel: '专注',
+  typewriterModeTitle: '打字机模式 (Ctrl+Shift+Y)',
+  typewriterModeLabel: '打字机',
+  toggleSourceTitle: '切换源码模式 (Ctrl+/)',
+  langToggleTitle: 'Switch to English',
+  langLabel: '中',
+
+  // tab bar
+  closeTabTitle: '关闭标签',
+  newTabTitle: '新建标签 (Ctrl+T)',
+  unsavedLabel: '未保存',
+
+  // find / replace
+  findPlaceholder: '查找…',
+  noMatches: '无匹配',
+  matchCount: '{n} 个匹配',
+  prevTitle: '上一个 (Shift+Enter)',
+  nextTitle: '下一个 (Enter)',
+  toggleReplaceTitle: '切换替换',
+  caseSensitiveTitle: '区分大小写',
+  closeTitle: '关闭 (Esc)',
+  replacePlaceholder: '替换为…',
+  replaceAll: '全部替换',
+
+  // settings panel
+  settingsTitle: '设置',
+  sectionEditor: '编辑器',
+  labelFontFamily: '字体',
+  labelFontSize: '字号',
+  fontSystemDefault: '系统默认',
+  fontGeorgia: 'Georgia（衬线体）',
+  fontMonospace: '等宽字体',
+  sectionCustomTheme: '自定义主题',
+  labelCustomCss: '自定义 CSS',
+  cssPlaceholder: '自定义 .css 文件路径…',
+  btnBrowse: '浏览',
+  btnClear: '清除',
+  btnCancel: '取消',
+  btnSave: '保存',
+  sectionLanguage: '语言',
+  langEnglish: 'English',
+  langChinese: '中文',
+};

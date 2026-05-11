@@ -1,6 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Vditor from 'vditor';
 import 'vditor/dist/index.css';
+import { useI18n } from '../i18n/I18nContext';
 
 const CDN = './vditor';
 
@@ -17,6 +18,7 @@ const TOOLBAR = [
 ];
 
 const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterMode, currentFile, onChange }, ref) => {
+  const { t } = useI18n();
   const containerRef  = useRef(null);
   const vdRef         = useRef(null);
   const readyRef      = useRef(false);
@@ -37,6 +39,23 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
     getHTML()  { return vdRef.current?.getHTML()  ?? ''; },
     focus()    { vdRef.current?.focus(); },
     getMode()  { return vdRef.current?.getCurrentMode() ?? 'unknown'; },
+    scrollToHeading(level, text) {
+      if (!containerRef.current) return;
+      // vditor-wysiwyg's pre.vditor-reset appears first in the DOM even in IR mode;
+      // find the active one by presence of rendered children
+      const ce = [...containerRef.current.querySelectorAll('pre.vditor-reset')]
+        .find(el => el.children.length > 0);
+      if (!ce) return;
+      const els = ce.querySelectorAll(`h${level}`);
+      for (const el of els) {
+        if (el.textContent.replace(/^#+\s*/, '').trim() === text) {
+          const elRect = el.getBoundingClientRect();
+          const ceRect = ce.getBoundingClientRect();
+          ce.scrollTo({ top: ce.scrollTop + elRect.top - ceRect.top - 20, behavior: 'smooth' });
+          return;
+        }
+      }
+    },
     executeFormat(cmd) {
       if (!readyRef.current || !vdRef.current) return;
       try {
@@ -75,12 +94,13 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
       value:       initialContent ?? '',
       height:      '100%',
       minHeight:   300,
-      placeholder: 'Start writing…',
+      placeholder: t('placeholder'),
       toolbar:     TOOLBAR,
       toolbarConfig: { hide: true, pin: false },
       counter:     { enable: false },
       cache:       { enable: false },
       preview: {
+        maxWidth: 860,
         theme: {
           current: contentTheme,
           path:    `${CDN}/dist/css/content-theme`,

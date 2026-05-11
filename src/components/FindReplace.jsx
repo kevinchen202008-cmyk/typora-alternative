@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function FindReplace({ editorRef, onClose }) {
+  const { t } = useI18n();
   const [search,        setSearch]       = useState('');
   const [replace,       setReplace]      = useState('');
   const [showReplace,   setShowReplace]  = useState(false);
@@ -10,7 +12,6 @@ export default function FindReplace({ editorRef, onClose }) {
 
   useEffect(() => { searchInputRef.current?.focus(); }, []);
 
-  // Count matches whenever search/caseSensitive changes
   useEffect(() => {
     if (!search) { setMatchCount(null); return; }
     const content = editorRef.current?.getValue() ?? '';
@@ -22,7 +23,6 @@ export default function FindReplace({ editorRef, onClose }) {
 
   const findNext = (backward = false) => {
     if (!search) return;
-    // Use browser native find for scrolling/highlighting
     window.find(search, caseSensitive, backward, true, false, true, false);
   };
 
@@ -49,21 +49,21 @@ export default function FindReplace({ editorRef, onClose }) {
           className="find-input"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Find…"
+          placeholder={t('findPlaceholder')}
         />
         {search && (
           <span className="find-count">
-            {matchCount === 0 ? 'No matches' : matchCount === null ? '' : `${matchCount} matches`}
+            {matchCount === 0 ? t('noMatches') : matchCount === null ? '' : t('matchCount', { n: matchCount })}
           </span>
         )}
-        <button className="find-btn" onClick={() => findNext(true)}  title="Previous (Shift+Enter)">↑</button>
-        <button className="find-btn" onClick={() => findNext(false)} title="Next (Enter)">↓</button>
+        <button className="find-btn" onClick={() => findNext(true)}  title={t('prevTitle')}>↑</button>
+        <button className="find-btn" onClick={() => findNext(false)} title={t('nextTitle')}>↓</button>
         <button
           className={`find-btn${showReplace ? ' active' : ''}`}
           onClick={() => setShowReplace(r => !r)}
-          title="Toggle replace"
+          title={t('toggleReplaceTitle')}
         >⇄</button>
-        <label className={`find-check${caseSensitive ? ' active' : ''}`} title="Case Sensitive">
+        <label className={`find-check${caseSensitive ? ' active' : ''}`} title={t('caseSensitiveTitle')}>
           <input
             type="checkbox"
             checked={caseSensitive}
@@ -72,7 +72,7 @@ export default function FindReplace({ editorRef, onClose }) {
           />
           Aa
         </label>
-        <button className="find-close" onClick={onClose} title="Close (Esc)">✕</button>
+        <button className="find-close" onClick={onClose} title={t('closeTitle')}>✕</button>
       </div>
 
       {showReplace && (
@@ -81,10 +81,10 @@ export default function FindReplace({ editorRef, onClose }) {
             className="find-input"
             value={replace}
             onChange={e => setReplace(e.target.value)}
-            placeholder="Replace with…"
+            placeholder={t('replacePlaceholder')}
           />
           <button className="find-btn find-replace-btn" onClick={doReplaceAll}>
-            Replace All
+            {t('replaceAll')}
           </button>
         </div>
       )}
