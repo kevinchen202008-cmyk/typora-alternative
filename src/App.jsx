@@ -304,7 +304,12 @@ export default function App() {
 </head><body class="vditor-reset">${body}</body></html>`;
       await window.electronAPI.exportHtml(html, baseName);
     } else if (format === 'pdf') {
-      await window.electronAPI.printToPdf({ name: baseName });
+      const body = editorRef.current?.getHTML() || '';
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${baseName}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor/dist/index.css">
+<style>body{max-width:860px;margin:0 auto;padding:30px 40px;font-family:-apple-system,sans-serif;}@media print{body{padding:0;}}</style>
+</head><body class="vditor-reset">${body}</body></html>`;
+      await window.electronAPI.printToPdf({ name: baseName, html });
     } else if (format === 'docx') {
       const res = await window.electronAPI.exportDocx(contentRef.current, baseName);
       if (!res.success) alert(t('wordExportFailed', { error: res.error || 'Unknown error' }));

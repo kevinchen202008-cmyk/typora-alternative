@@ -364,13 +364,27 @@ ipcMain.handle('print-to-pdf', async (_, opts) => {
     defaultPath: (opts?.name || 'document') + '.pdf',
     filters: [{ name: 'PDF', extensions: ['pdf'] }],
   });
-  if (!r.canceled) {
-    const data = await win.webContents.printToPDF({});
-    fs.writeFileSync(r.filePath, data);
-    shell.openPath(r.filePath);
-    return r.filePath;
-  }
-  return null;
+  if (r.canceled) return null;
+
+  // Write HTML to a temp file so the hidden window can load it via file://
+  const tmpPath = path.join(app.getPath('temp'), `_pdf_${Date.now()}.html`);
+  fs.writeFileSync(tmpPath, opts?.html || '', 'utf8');
+  const fileUrl = require('url').pathToFileURL(tmpPath).href;
+
+  const pdfWin = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true } });
+  await pdfWin.loadURL(fileUrl);
+
+  const data = await pdfWin.webContents.printToPDF({
+    printBackground: true,
+    pageSize: 'A4',
+    margins: { marginType: 'default' },
+  });
+  pdfWin.destroy();
+  try { fs.unlinkSync(tmpPath); } catch {}
+
+  fs.writeFileSync(r.filePath, data);
+  shell.openPath(r.filePath);
+  return r.filePath;
 });
 
 // ── Image save (F01) ───────────────────────────────────────────────────────────
