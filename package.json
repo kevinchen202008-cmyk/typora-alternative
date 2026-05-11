@@ -1,6 +1,6 @@
 {
   "name": "typora-alternative",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Typora-like Markdown editor for Windows",
   "main": "electron/main.js",
   "scripts": {
