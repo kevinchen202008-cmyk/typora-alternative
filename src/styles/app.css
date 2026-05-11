@@ -266,12 +266,15 @@ button {
 /* Hide toolbar — all formatting via keyboard / menu (Typora style) */
 .vditor-toolbar { display: none !important; }
 
-/* Content padding & centering */
+/* Override Vditor's JS-calculated inline padding (which goes stale after
+   Electron zoom) with pure CSS centering. !important wins over inline styles.
+   max(48px, ...) keeps readable margins on narrow windows. */
 .vditor-ir pre.vditor-reset,
 .vditor-wysiwyg pre.vditor-reset {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 28px 48px 80px;
+  padding-top:    28px !important;
+  padding-bottom: 80px !important;
+  padding-left:   max(48px, calc((100% - 860px) / 2)) !important;
+  padding-right:  max(48px, calc((100% - 860px) / 2)) !important;
 }
 
 .vditor-sv .vditor-sv__editor {
