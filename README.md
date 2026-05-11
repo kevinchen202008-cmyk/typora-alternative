@@ -1,6 +1,8 @@
-# Typora-Fake
+# Typora Alternative
 
 A local Windows Markdown editor that replicates the Typora experience, built with Electron + Vite + React + Vditor.
+
+[中文版](README_zh.md)
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -30,8 +32,8 @@ A local Windows Markdown editor that replicates the Typora experience, built wit
 ### Install & Run
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/typora-fake.git
-cd typora-fake
+git clone https://github.com/kevinchen202008-cmyk/typora-alternative.git
+cd typora-alternative
 npm install
 npm run dev
 ```
