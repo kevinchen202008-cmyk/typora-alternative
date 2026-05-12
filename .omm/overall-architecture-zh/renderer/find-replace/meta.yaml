@@ -1,0 +1,9 @@
+created: 2026-05-12T08:44:10.157Z
+updated: 2026-05-12T08:44:10.158Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: find-replace
+children: []
+parentPath:
+  - renderer

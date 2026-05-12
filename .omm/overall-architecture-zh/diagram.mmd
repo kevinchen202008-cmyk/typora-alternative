@@ -1,0 +1,28 @@
+graph LR
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+
+    renderer["渲染进程\nsrc/"]
+    main-process["主进程\nelectron/main.js"]
+    preload["预加载桥接\nelectron/preload.js"]
+    theme-system["主题系统\npublic/themes/"]
+    locale-system["本地化系统\npublic/locales/"]
+    file-system["文件系统\n%APPDATA% + 工作目录"]
+    vditor["Vditor 编辑器\npublic/vditor/"]
+    test-suite["测试套件\ntests/"]
+
+    renderer -->|"contextBridge API 调用"| preload
+    preload -->|"ipcRenderer.invoke/send"| main-process
+    main-process -->|"ipcMain 事件推送渲染进程"| preload
+    renderer -->|"启动时 fetch JSON"| locale-system
+    renderer -->|"<link> href 热换"| theme-system
+    renderer -->|"CDN 本地混合加载"| vditor
+    main-process -->|"readFileSync / writeFileSync"| file-system
+    main-process -->|"fs.readFileSync index.json"| theme-system
+    main-process -->|"fs.readFileSync menu.json"| locale-system
+    test-suite -->|"Playwright Electron 启动"| main-process
+
+    class renderer entry
+    class file-system store
+    class vditor external

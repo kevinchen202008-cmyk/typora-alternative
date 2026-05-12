@@ -1,0 +1,31 @@
+graph LR
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+
+    file-open["文件打开\nOS 关联 / 菜单 / 侧边栏"]
+    editor-content["编辑器内容\nVditor 内存缓冲区"]
+    content-ref["内容引用\nApp.jsx contentRef"]
+    auto-save["自动保存定时器\n5s 防抖"]
+    disk-file["Markdown 文件\n.md 磁盘文件"]
+    image-paste["图片粘贴/拖放\n./assets/ 目录"]
+    export-html["HTML 导出\ndialog.showSaveDialog"]
+    export-pdf["PDF 导出\n隐藏 BrowserWindow"]
+    export-docx["DOCX 导出\npandoc 子进程"]
+    config-file["配置文件\nuserData/config.json"]
+
+    file-open -->|"IPC: read-file → 内容字符串"| editor-content
+    editor-content -->|"input() 回调"| content-ref
+    content-ref -->|"5s 空闲后触发"| auto-save
+    auto-save -->|"IPC: write-file"| disk-file
+    editor-content -->|"IPC: save-image → 返回相对路径并插入"| image-paste
+    image-paste -->|"保存至 ./assets/"| disk-file
+    editor-content -->|"getHTML() → HTML 字符串"| export-html
+    editor-content -->|"getHTML() → 隐藏窗口 printToPDF"| export-pdf
+    content-ref -->|"getValue() → Markdown → pandoc stdin"| export-docx
+    auto-save -->|"持久化 lastFolder, recentFiles"| config-file
+
+    class file-open entry
+    class disk-file store
+    class config-file store
+    class export-docx external

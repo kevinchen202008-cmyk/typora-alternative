@@ -1,0 +1,16 @@
+created: 2026-05-12T08:43:28.647Z
+updated: 2026-05-12T08:43:35.824Z
+update_count: 2
+last_field: diagram
+kind: nested-class
+title: renderer
+children:
+  - app
+  - editor
+  - find-replace
+  - i18n
+  - settings-panel
+  - sidebar
+  - status-bar
+  - tab-bar
+parentPath: []

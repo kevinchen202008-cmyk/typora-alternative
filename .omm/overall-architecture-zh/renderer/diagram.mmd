@@ -1,0 +1,24 @@
+graph LR
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    app["应用（状态中枢）\nsrc/App.jsx"]
+    editor["编辑器\nsrc/components/Editor.jsx"]
+    sidebar["侧边栏\nsrc/components/Sidebar.jsx"]
+    tab-bar["标签栏\nsrc/components/TabBar.jsx"]
+    status-bar["状态栏\nsrc/components/StatusBar.jsx"]
+    find-replace["查找替换\nsrc/components/FindReplace.jsx"]
+    settings-panel["设置面板\nsrc/components/SettingsPanel.jsx"]
+    i18n["国际化系统\nsrc/i18n/"]
+
+    app -->|"ref + 命令式 API"| editor
+    app -->|"props + 回调"| sidebar
+    app -->|"标签状态 + 回调"| tab-bar
+    app -->|"wordCount / mode / file 状态"| status-bar
+    app -->|"显示/隐藏 + editorRef"| find-replace
+    app -->|"主题/字体设置"| settings-panel
+    i18n -->|"useI18n() 钩子"| app
+    i18n -->|"useI18n() 钩子"| editor
+    i18n -->|"useI18n() 钩子"| sidebar
+    i18n -->|"useI18n() 钩子"| settings-panel
+
+    class app entry

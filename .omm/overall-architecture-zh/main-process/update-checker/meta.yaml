@@ -1,0 +1,9 @@
+created: 2026-05-12T08:45:20.447Z
+updated: 2026-05-12T08:45:20.449Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: update-checker
+children: []
+parentPath:
+  - main-process

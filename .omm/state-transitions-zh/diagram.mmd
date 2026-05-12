@@ -1,0 +1,20 @@
+graph TD
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    tab-state["标签状态\ntabs[] + activeIdx"]
+    editor-mode["编辑器模式\nir / sv / wysiwyg"]
+    theme-state["主题状态\n主题 ID + <link> href"]
+    sidebar-state["侧边栏状态\n展开/收起 + 活动标签"]
+    focus-state["焦点/打字机模式\nfocusMode + typewriterMode"]
+    dirty-state["脏状态\nisDirty + 自动保存定时器"]
+    settings-state["设置状态\nfont + size + customCss"]
+
+    tab-state -->|"activateTab() 恢复 contentRef"| dirty-state
+    tab-state -->|"activateTab() 调用 setValue()"| editor-mode
+    dirty-state -->|"自动保存清除 isDirty"| tab-state
+    theme-state -->|"applyTheme() 调用 setVditorTheme()"| editor-mode
+    editor-mode -->|"Vditor 模式按钮点击"| tab-state
+    focus-state -->|"selectionchange 切换 .focus-block CSS 类"| editor-mode
+    settings-state -->|"CSS 变量 --editor-font / --editor-font-size"| editor-mode
+
+    class tab-state entry

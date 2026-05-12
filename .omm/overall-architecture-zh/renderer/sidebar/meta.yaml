@@ -1,0 +1,9 @@
+created: 2026-05-12T08:43:56.457Z
+updated: 2026-05-12T08:43:56.458Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: sidebar
+children: []
+parentPath:
+  - renderer

@@ -1,0 +1,9 @@
+created: 2026-05-12T08:44:49.200Z
+updated: 2026-05-12T08:44:49.201Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: menu-builder
+children: []
+parentPath:
+  - main-process

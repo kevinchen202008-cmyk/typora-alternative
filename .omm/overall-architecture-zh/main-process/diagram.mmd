@@ -1,0 +1,19 @@
+graph LR
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+
+    window-manager["窗口管理器\nBrowserWindow 生命周期"]
+    menu-builder["菜单构建器\nbuildMenu() + m()"]
+    ipc-handlers["IPC 处理器\nipcMain.handle/on"]
+    config-store["配置存储\nuserData/config.json"]
+    export-engine["导出引擎\nHTML / PDF / DOCX"]
+    update-checker["更新检查器\nGitHub Releases API"]
+
+    window-manager -->|"启动及语言切换时调用"| menu-builder
+    menu-builder -->|"读取 menuLocale"| ipc-handlers
+    ipc-handlers -->|"读写"| config-store
+    ipc-handlers -->|"触发"| export-engine
+    ipc-handlers -->|"启动时触发"| update-checker
+
+    class config-store store
+    class update-checker external

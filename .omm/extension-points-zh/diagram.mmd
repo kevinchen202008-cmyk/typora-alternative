@@ -1,0 +1,25 @@
+graph LR
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    theme-registry["主题注册表\npublic/themes/index.json"]
+    builtin-themes["内置主题\npublic/themes/*.css"]
+    user-themes["用户自定义主题\n%APPDATA%/themes/*.css"]
+    locale-registry["语言注册表\npublic/locales/index.json"]
+    builtin-locales["内置语言包\npublic/locales/{id}/"]
+    custom-css["自定义 CSS\n用户提供的 .css 文件"]
+    theme-consumer["主题消费者\nApp.jsx applyTheme()"]
+    locale-consumer["语言消费者\nI18nContext.jsx"]
+
+    theme-registry -->|"getThemes() IPC 合并"| builtin-themes
+    theme-registry -->|"getThemes() IPC 合并"| user-themes
+    builtin-themes -->|"<link> href 热换"| theme-consumer
+    user-themes -->|"file:// URL <link> 注入"| theme-consumer
+    custom-css -->|"<style> 元素注入"| theme-consumer
+    locale-registry -->|"fetch index.json"| locale-consumer
+    builtin-locales -->|"fetch ui.json"| locale-consumer
+
+    class user-themes store
+    class custom-css store
+    class theme-consumer entry
+    class locale-consumer entry
