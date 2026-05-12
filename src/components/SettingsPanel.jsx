@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 
 const FONT_VALUES = [
@@ -9,11 +9,18 @@ const FONT_VALUES = [
 
 const SIZE_OPTIONS = ['13px', '14px', '15px', '16px', '17px', '18px'];
 
-export default function SettingsPanel({ settings, onSave, onClose }) {
-  const { t, lang, setLang } = useI18n();
+export default function SettingsPanel({ settings, theme, onThemeChange, onSave, onClose }) {
+  const { t, lang, setLang, locales } = useI18n();
+  const [themes,    setThemes]    = useState([]);
   const [font,      setFont]      = useState(settings.editorFont     || FONT_VALUES[0].value);
   const [size,      setSize]      = useState(settings.editorFontSize || '15px');
   const [customCss, setCustomCss] = useState(settings.customCssPath  || '');
+
+  useEffect(() => {
+    window.electronAPI.getThemes?.()
+      .then(list => setThemes(list ?? []))
+      .catch(() => {});
+  }, []);
 
   const handleSave = () => {
     onSave({ editorFont: font, editorFontSize: size, customCssPath: customCss });
@@ -55,7 +62,32 @@ export default function SettingsPanel({ settings, onSave, onClose }) {
           </div>
 
           <div className="settings-section">
-            <div className="settings-section-title">{t('sectionCustomTheme')}</div>
+            <div className="settings-section-title">{t('sectionTheme')}</div>
+            <div className="settings-row">
+              <span className="settings-label">{t('labelTheme')}</span>
+              <select
+                className="settings-select"
+                value={theme}
+                onChange={e => onThemeChange(e.target.value)}
+              >
+                {themes.map(th => (
+                  <option key={th.id} value={th.id}>{th.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="settings-row">
+              <span className="settings-label" />
+              <button
+                className="btn-secondary"
+                onClick={() => window.electronAPI.openThemesFolder?.()}
+              >
+                {t('btnOpenThemesFolder')}
+              </button>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <div className="settings-section-title">{t('sectionCustomCss')}</div>
             <div className="settings-row">
               <span className="settings-label">{t('labelCustomCss')}</span>
               <div className="settings-file-row">
@@ -76,14 +108,15 @@ export default function SettingsPanel({ settings, onSave, onClose }) {
           <div className="settings-section">
             <div className="settings-section-title">{t('sectionLanguage')}</div>
             <div className="settings-row">
-              <span className="settings-label">{t('sectionLanguage')}</span>
+              <span className="settings-label">{t('labelLanguage')}</span>
               <select
                 className="settings-select"
                 value={lang}
                 onChange={e => setLang(e.target.value)}
               >
-                <option value="en">{t('langEnglish')}</option>
-                <option value="zh">{t('langChinese')}</option>
+                {locales.map(loc => (
+                  <option key={loc.id} value={loc.id}>{loc.nativeName}</option>
+                ))}
               </select>
             </div>
           </div>

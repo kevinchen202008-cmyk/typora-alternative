@@ -1,0 +1,84 @@
+/*
+ * Theme: GitHub
+ * Mode: light
+ * Version: 1.0
+ * Inspired by: https://github.com/typora/typora-default-themes
+ */
+
+:root {
+  --accent:               #0969da;
+
+  /* App chrome */
+  --bg-editor:            #ffffff;
+  --bg-sidebar:           #f6f8fa;
+  --bg-sidebar-hover:     #eaecef;
+  --bg-sidebar-act:       #dbedff;
+  --bg-statusbar:         #f6f8fa;
+  --border-subtle:        #d0d7de;
+  --text-primary:         #1f2328;
+  --text-secondary:       #57606a;
+  --text-accent:          #0969da;
+  --text-active:          #0550ae;
+  --tab-active-bg:        #ffffff;
+  --shadow-sm:            0 1px 3px rgba(140,149,159,.15);
+  --shadow-modal:         0 12px 40px rgba(140,149,159,.25);
+  --update-banner-bg:     #e6f4ea;
+  --update-banner-border: #b7dfc0;
+  --update-banner-color:  #1a7f37;
+
+  /* Content typography */
+  --content-font:         -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --content-font-size:    16px;
+  --content-line-height:  1.6;
+  --content-color:        #1f2328;
+  --content-link-color:   #0969da;
+  --content-code-bg:      #eff1f3;
+  --content-code-color:   #e83e8c;
+  --content-border:       #d0d7de;
+  --content-quote-border: #d0d7de;
+  --content-quote-color:  #57606a;
+
+  /* Vditor integration */
+  --vditor-theme:         classic;
+  --vditor-content-theme: github;
+  --vditor-hl-theme:      github;
+}
+
+.vditor-reset {
+  font-family: var(--content-font) !important;
+  font-size:   var(--content-font-size) !important;
+  line-height: var(--content-line-height) !important;
+  color:       var(--content-color) !important;
+}
+
+.vditor-reset h1,
+.vditor-reset h2 {
+  padding-bottom: .3em;
+  border-bottom: 1px solid var(--content-border);
+}
+
+.vditor-reset a { color: var(--content-link-color); }
+
+.vditor-reset code:not(.hljs) {
+  background:    var(--content-code-bg);
+  color:         var(--content-code-color);
+  padding:       .2em .4em;
+  border-radius: 6px;
+  font-size:     85%;
+}
+
+.vditor-reset blockquote {
+  border-left: 4px solid var(--content-quote-border);
+  color:       var(--content-quote-color);
+  padding:     0 1em;
+  margin:      1em 0;
+}
+
+.vditor-reset table th,
+.vditor-reset table td {
+  border:  1px solid var(--content-border);
+  padding: 6px 13px;
+}
+
+.vditor-reset table th { background: var(--bg-sidebar); font-weight: 600; }
+.vditor-reset table tr:nth-child(2n) { background: #f6f8fa; }

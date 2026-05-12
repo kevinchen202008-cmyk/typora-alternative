@@ -26,6 +26,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // F08: Word export
   exportDocx:       (md, name)       => ipcRenderer.invoke('export-docx', md, name),
 
+  // i18n / themes
+  getLocales:       ()               => ipcRenderer.invoke('get-locales'),
+  getThemes:        ()               => ipcRenderer.invoke('get-themes'),
+  openThemesFolder: ()               => ipcRenderer.invoke('open-themes-folder'),
+
   // F09: Custom CSS
   pickCssFile:      ()               => ipcRenderer.invoke('pick-css-file'),
 

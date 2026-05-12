@@ -69,7 +69,7 @@ export default function App() {
   // ── Live UI state ─────────────────────────────────────────────────────────────
   const [currentFile,    setCurrentFile]   = useState(null);
   const [isDirty,        setIsDirty]       = useState(false);
-  const [theme,          setTheme]         = useState('light');
+  const [theme,          setTheme]         = useState('default');
   const [mode,           setMode]          = useState('ir');
   const [sidebarOpen,    setSidebarOpen]   = useState(true);
   const [sidebarTab,     setSidebarTab]    = useState('files');
@@ -100,6 +100,23 @@ export default function App() {
   }, []);
 
   const setFile = useCallback((p) => { currentFileRef.current = p; setCurrentFile(p); }, []);
+
+  const applyTheme = useCallback(async (themeId) => {
+    setTheme(themeId);
+    const link = document.getElementById('app-theme');
+    if (!link) return;
+    link.href = `./themes/${themeId}.css`;
+    await new Promise(resolve => {
+      link.addEventListener('load',  resolve, { once: true });
+      link.addEventListener('error', resolve, { once: true });
+      setTimeout(resolve, 500);
+    });
+    const style = getComputedStyle(document.documentElement);
+    const vt  = style.getPropertyValue('--vditor-theme').trim()         || 'classic';
+    const ct  = style.getPropertyValue('--vditor-content-theme').trim() || 'light';
+    const hlt = style.getPropertyValue('--vditor-hl-theme').trim()      || 'github';
+    editorRef.current?.setVditorTheme(vt, ct, hlt);
+  }, []);
 
   // ── Tab management ─────────────────────────────────────────────────────────────
 
@@ -340,12 +357,10 @@ export default function App() {
     }).catch(() => {});
   }, [customCssPath]);
 
-  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
-
   // ── Menu wiring ───────────────────────────────────────────────────────────────
   useEffect(() => {
     window.electronAPI.getConfig().then(cfg => {
-      if (cfg.theme)          setTheme(cfg.theme);
+      if (cfg.theme)          applyTheme(cfg.theme);
       if (cfg.sidebarOpen === false) setSidebarOpen(false);
       if (cfg.editorFont)     setEditorFont(cfg.editorFont);
       if (cfg.editorFontSize) setEditorFontSize(cfg.editorFontSize);
@@ -373,7 +388,7 @@ export default function App() {
         setSidebarOpen(o => { window.electronAPI.updateConfig({ sidebarOpen: !o }); return !o; });
       }),
       window.electronAPI.onMenuToggleOutline(() => { setSidebarOpen(true); setSidebarTab('outline'); }),
-      window.electronAPI.onMenuSetTheme((t) => { setTheme(t); window.electronAPI.updateConfig({ theme: t }); }),
+      window.electronAPI.onMenuSetTheme((t) => { applyTheme(t); window.electronAPI.updateConfig({ theme: t }); }),
       window.electronAPI.onMenuExport(handleExport),
       window.electronAPI.onMenuFormat((cmd) => editorRef.current?.executeFormat(cmd)),
       window.electronAPI.onMenuFind((openReplace) => { setFindReplace(!!openReplace); setShowFind(true); }),
@@ -472,7 +487,6 @@ export default function App() {
           <Editor
             ref={editorRef}
             initialContent={WELCOME}
-            theme={theme}
             mode={mode}
             focusMode={focusMode}
             typewriterMode={typewriterMode}
@@ -493,13 +507,15 @@ export default function App() {
           onToggleFocus={() => setFocusMode(v => { window.electronAPI.updateConfig({ focusMode: !v }); return !v; })}
           onToggleTypewriter={() => setTypewriterMode(v => { window.electronAPI.updateConfig({ typewriterMode: !v }); return !v; })}
           lang={lang}
-          onToggleLang={() => setLang(lang === 'en' ? 'zh' : 'en')}
+          onToggleLang={() => setLang(lang === 'en-US' ? 'zh-Hans' : 'en-US')}
         />
       </div>
 
       {showSettings && (
         <SettingsPanel
           settings={{ editorFont, editorFontSize, customCssPath }}
+          theme={theme}
+          onThemeChange={(tid) => { applyTheme(tid); window.electronAPI.updateConfig({ theme: tid }); }}
           onSave={handleSettingsSave}
           onClose={() => setShowSettings(false)}
         />

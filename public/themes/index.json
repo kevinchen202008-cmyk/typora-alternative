@@ -1,0 +1,6 @@
+[
+  { "id": "default",     "name": "Default",     "mode": "light" },
+  { "id": "github",      "name": "GitHub",      "mode": "light" },
+  { "id": "night",       "name": "Night",       "mode": "dark"  },
+  { "id": "github-dark", "name": "GitHub Dark", "mode": "dark"  }
+]

@@ -1,0 +1,4 @@
+[
+  { "id": "en-US",   "name": "English",           "nativeName": "English"  },
+  { "id": "zh-Hans", "name": "Chinese Simplified", "nativeName": "简体中文" }
+]

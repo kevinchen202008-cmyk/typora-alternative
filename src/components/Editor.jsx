@@ -17,7 +17,7 @@ const TOOLBAR = [
   },
 ];
 
-const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterMode, currentFile, onChange }, ref) => {
+const Editor = forwardRef(({ initialContent, mode, focusMode, typewriterMode, currentFile, onChange }, ref) => {
   const { t } = useI18n();
   const containerRef  = useRef(null);
   const vdRef         = useRef(null);
@@ -39,6 +39,13 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
     getHTML()  { return vdRef.current?.getHTML()  ?? ''; },
     focus()    { vdRef.current?.focus(); },
     getMode()  { return vdRef.current?.getCurrentMode() ?? 'unknown'; },
+    setVditorTheme(vditorTheme, contentTheme, hlTheme) {
+      if (readyRef.current && vdRef.current) {
+        vdRef.current.setTheme(vditorTheme, contentTheme, hlTheme);
+      } else {
+        pendingTheme.current = [vditorTheme, contentTheme, hlTheme];
+      }
+    },
     scrollToHeading(level, text) {
       if (!containerRef.current) return;
       // vditor-wysiwyg's pre.vditor-reset appears first in the DOM even in IR mode;
@@ -83,14 +90,10 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
 
   // ── Initialize Vditor once ────────────────────────────────────────────────────
   useEffect(() => {
-    const vditorTheme  = theme === 'dark' ? 'dark' : 'classic';
-    const contentTheme = theme === 'dark' ? 'dark' : (theme === 'github' ? 'github' : 'light');
-    const hlTheme      = theme === 'dark' ? 'native' : 'github';
-
     const vd = new Vditor(containerRef.current, {
       cdn:         CDN,
       mode:        mode ?? 'ir',
-      theme:       vditorTheme,
+      theme:       'classic',
       value:       initialContent ?? '',
       height:      '100%',
       minHeight:   300,
@@ -102,10 +105,10 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
       preview: {
         maxWidth: 860,
         theme: {
-          current: contentTheme,
+          current: 'light',
           path:    `${CDN}/dist/css/content-theme`,
         },
-        hljs: { enable: true, style: hlTheme, lineNumber: true },
+        hljs: { enable: true, style: 'github', lineNumber: true },
         math: { inlineDigit: true, engine: 'KaTeX' },
         mermaid: { zoom: 1.0 },
       },
@@ -125,8 +128,8 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
           pendingMode.current = null;
         }
         if (pendingTheme.current !== null) {
-          const [et, ct] = pendingTheme.current;
-          vd.setTheme(et, ct);
+          const [et, ct, ht] = pendingTheme.current;
+          vd.setTheme(et, ct, ht);
           pendingTheme.current = null;
         }
 
@@ -189,21 +192,6 @@ const Editor = forwardRef(({ initialContent, theme, mode, focusMode, typewriterM
       vdRef.current?.insertValue(`![](${rel})\n`);
     }
   }
-
-  // ── Theme changes ─────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!readyRef.current || !vdRef.current) {
-      pendingTheme.current = [
-        theme === 'dark' ? 'dark' : 'classic',
-        theme === 'dark' ? 'dark' : (theme === 'github' ? 'github' : 'light'),
-      ];
-      return;
-    }
-    vdRef.current.setTheme(
-      theme === 'dark' ? 'dark' : 'classic',
-      theme === 'dark' ? 'dark' : (theme === 'github' ? 'github' : 'light'),
-    );
-  }, [theme]);
 
   // ── Mode changes — Vditor has no public setMode(); click toolbar button ───────
   useEffect(() => {

@@ -6,72 +6,62 @@ const { spawn } = require('child_process');
 const isDev      = !app.isPackaged;
 const configPath = path.join(app.getPath('userData'), 'config.json');
 
-// ── Menu i18n ──────────────────────────────────────────────────────────────────
-const MENU_I18N = {
-  en: {
-    file: 'File', new: 'New', newTab: 'New Tab', closeTab: 'Close Tab',
-    open: 'Open...', openFolder: 'Open Folder...', openRecent: 'Open Recent',
-    noRecentFiles: 'No recent files', save: 'Save', saveAs: 'Save As...',
-    export: 'Export', exportHtml: 'HTML...', exportPdf: 'PDF...', exportDocx: 'Word (.docx)...',
-    settings: 'Settings...', exit: 'Exit',
-    edit: 'Edit', find: 'Find', replace: 'Replace',
-    paragraph: 'Paragraph',
-    h1: 'Heading 1', h2: 'Heading 2', h3: 'Heading 3',
-    h4: 'Heading 4', h5: 'Heading 5', h6: 'Heading 6',
-    normal: 'Normal', quote: 'Quote', codeBlock: 'Code Block',
-    orderedList: 'Ordered List', unorderedList: 'Unordered List',
-    taskList: 'Task List', hr: 'Horizontal Rule', table: 'Table', mathBlock: 'Math Block',
-    format: 'Format', bold: 'Bold', italic: 'Italic',
-    strikethrough: 'Strikethrough', inlineCode: 'Inline Code',
-    inlineMath: 'Inline Math', link: 'Link',
-    view: 'View', sourceMode: 'Source Mode', toggleSidebar: 'Toggle Sidebar',
-    showOutline: 'Show Outline', focusMode: 'Focus Mode', typewriterMode: 'Typewriter Mode',
-    theme: 'Theme', themeLight: 'Default (Light)', themeDark: 'Dark', themeGitHub: 'GitHub',
-    devTools: 'Developer Tools',
-    help: 'Help', about: 'About',
-    aboutTitle: 'About', aboutMessage: 'Typora-like Markdown Editor',
-    aboutDetail: 'Built with Electron + Vditor\nVersion 1.0.0',
-    language: 'Language', langEnglish: 'English', langChinese: 'Chinese (中文)',
-    cannotOpenFile: 'Cannot open file',
-  },
-  zh: {
-    file: '文件', new: '新建', newTab: '新建标签', closeTab: '关闭标签',
-    open: '打开...', openFolder: '打开文件夹...', openRecent: '最近打开',
-    noRecentFiles: '无最近文件', save: '保存', saveAs: '另存为...',
-    export: '导出', exportHtml: 'HTML...', exportPdf: 'PDF...', exportDocx: 'Word (.docx)...',
-    settings: '设置...', exit: '退出',
-    edit: '编辑', find: '查找', replace: '替换',
-    paragraph: '段落',
-    h1: '一级标题', h2: '二级标题', h3: '三级标题',
-    h4: '四级标题', h5: '五级标题', h6: '六级标题',
-    normal: '正文', quote: '引用', codeBlock: '代码块',
-    orderedList: '有序列表', unorderedList: '无序列表',
-    taskList: '任务列表', hr: '分割线', table: '表格', mathBlock: '数学公式块',
-    format: '格式', bold: '粗体', italic: '斜体',
-    strikethrough: '删除线', inlineCode: '行内代码',
-    inlineMath: '行内公式', link: '链接',
-    view: '视图', sourceMode: '源码模式', toggleSidebar: '切换侧栏',
-    showOutline: '显示大纲', focusMode: '专注模式', typewriterMode: '打字机模式',
-    theme: '主题', themeLight: '默认（浅色）', themeDark: '深色', themeGitHub: 'GitHub',
-    devTools: '开发者工具',
-    help: '帮助', about: '关于',
-    aboutTitle: '关于', aboutMessage: 'Typora 风格 Markdown 编辑器',
-    aboutDetail: '基于 Electron + Vditor 构建\n版本 1.0.0',
-    language: '语言', langEnglish: 'English', langChinese: '中文',
-    cannotOpenFile: '无法打开文件',
-  },
-};
+// ── Locale & theme paths ───────────────────────────────────────────────────────
+const localesDir = path.join(__dirname, '..', isDev ? 'public/locales' : 'dist/locales');
+const builtinThemesDir = path.join(__dirname, '..', isDev ? 'public/themes' : 'dist/themes');
+const userThemesDir    = path.join(app.getPath('userData'), 'themes');
 
-function m(key) {
-  const lang = config?.language || 'en';
-  return (MENU_I18N[lang] || MENU_I18N.en)[key] ?? MENU_I18N.en[key] ?? key;
+// ── Menu i18n — loaded from locales/{id}/menu.json ────────────────────────────
+let menuLocale = {};
+
+function refreshMenuLocale() {
+  const lang = migrateLanguageId(config?.language || 'en-US');
+  const tryLoad = (id) => {
+    try { return JSON.parse(fs.readFileSync(path.join(localesDir, id, 'menu.json'), 'utf8')); }
+    catch { return null; }
+  };
+  menuLocale = tryLoad(lang) ?? tryLoad('en-US') ?? {};
+}
+
+function m(key) { return menuLocale[key] ?? key; }
+
+// ── Language ID migration (v1.0 → v1.1) ───────────────────────────────────────
+function migrateLanguageId(id) {
+  if (id === 'en') return 'en-US';
+  if (id === 'zh') return 'zh-Hans';
+  return id || 'en-US';
+}
+
+// ── Theme registry — loaded from public/themes/index.json ─────────────────────
+let builtinThemes = [];
+
+function loadThemesIndex() {
+  try {
+    builtinThemes = JSON.parse(fs.readFileSync(path.join(builtinThemesDir, 'index.json'), 'utf8'));
+  } catch {
+    builtinThemes = [
+      { id: 'default', name: 'Default', mode: 'light' },
+      { id: 'night',   name: 'Night',   mode: 'dark'  },
+    ];
+  }
 }
 
 // ── Config helpers ─────────────────────────────────────────────────────────────
 function readConfig() {
-  try { return JSON.parse(fs.readFileSync(configPath, 'utf8')); }
-  catch { return { recentFiles: [], theme: 'light', sidebarOpen: true }; }
+  let cfg;
+  try { cfg = JSON.parse(fs.readFileSync(configPath, 'utf8')); }
+  catch { cfg = { recentFiles: [], theme: 'default', sidebarOpen: true }; }
+  return migrateConfig(cfg);
 }
+
+function migrateConfig(cfg) {
+  if (cfg.language === 'en')    cfg.language = 'en-US';
+  if (cfg.language === 'zh')    cfg.language = 'zh-Hans';
+  if (cfg.theme    === 'light') cfg.theme    = 'default';
+  if (cfg.theme    === 'dark')  cfg.theme    = 'night';
+  return cfg;
+}
+
 function writeConfig(data) {
   fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf8');
 }
@@ -83,6 +73,7 @@ let pendingFile = null;
 // ── Window creation ────────────────────────────────────────────────────────────
 function createWindow() {
   const b = config.windowBounds || {};
+  const isDark = builtinThemes.find(t => t.id === config.theme)?.mode === 'dark';
 
   win = new BrowserWindow({
     width:           b.width  || 1200,
@@ -92,7 +83,7 @@ function createWindow() {
     minWidth:        720,
     minHeight:       500,
     show:            false,
-    backgroundColor: config.theme === 'dark' ? '#1e1e1e' : '#ffffff',
+    backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
     webPreferences: {
       preload:          path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -117,7 +108,29 @@ function createWindow() {
 
 // ── Application menu ───────────────────────────────────────────────────────────
 function buildMenu() {
+  refreshMenuLocale();
   const recent = (config.recentFiles || []).slice(0, 10);
+
+  // Build theme submenu dynamically from registry
+  const themeSubmenu = builtinThemes.map(t => ({
+    label: t.name,
+    type:  'radio',
+    checked: config.theme === t.id,
+    click: () => applyTheme(t.id),
+  }));
+
+  // Append user themes
+  if (fs.existsSync(userThemesDir)) {
+    const userCss = fs.readdirSync(userThemesDir).filter(f => f.endsWith('.css'));
+    if (userCss.length) {
+      themeSubmenu.push({ type: 'separator' });
+      for (const f of userCss) {
+        const id = `user:${f.replace('.css', '')}`;
+        const name = f.replace('.css', '');
+        themeSubmenu.push({ label: name, type: 'radio', checked: config.theme === id, click: () => applyTheme(id) });
+      }
+    }
+  }
 
   const template = [
     {
@@ -209,21 +222,16 @@ function buildMenu() {
         { type: 'separator' },
         { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' },
         { type: 'separator' },
-        {
-          label: m('theme'),
-          submenu: [
-            { label: m('themeLight'), click: () => applyTheme('light')  },
-            { label: m('themeDark'),  click: () => applyTheme('dark')   },
-            { label: m('themeGitHub'), click: () => applyTheme('github') },
-          ],
-        },
+        { label: m('theme'), submenu: themeSubmenu },
         { type: 'separator' },
         {
           label: m('language'),
-          submenu: [
-            { label: m('langEnglish'), click: () => applyLanguage('en') },
-            { label: m('langChinese'), click: () => applyLanguage('zh') },
-          ],
+          submenu: loadLocalesIndex().map(loc => ({
+            label:   loc.nativeName,
+            type:    'radio',
+            checked: migrateLanguageId(config?.language || 'en-US') === loc.id,
+            click:   () => applyLanguage(loc.id),
+          })),
         },
         { type: 'separator' },
         { role: 'togglefullscreen' },
@@ -248,19 +256,28 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-function send(channel, ...args) { win?.webContents.send(channel, ...args); }
-
-function applyTheme(theme) {
-  config.theme = theme;
-  writeConfig(config);
-  send('menu-set-theme', theme);
+function loadLocalesIndex() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(localesDir, 'index.json'), 'utf8'));
+  } catch {
+    return [{ id: 'en-US', name: 'English', nativeName: 'English' }];
+  }
 }
 
-function applyLanguage(lang) {
-  config.language = lang;
+function send(channel, ...args) { win?.webContents.send(channel, ...args); }
+
+function applyTheme(themeId) {
+  config.theme = themeId;
   writeConfig(config);
   buildMenu();
-  send('menu-set-language', lang);
+  send('menu-set-theme', themeId);
+}
+
+function applyLanguage(localeId) {
+  config.language = localeId;
+  writeConfig(config);
+  buildMenu();
+  send('menu-set-language', localeId);
 }
 
 // ── File operations ────────────────────────────────────────────────────────────
@@ -306,11 +323,37 @@ async function cmdOpenFolder() {
 // ── IPC handlers ───────────────────────────────────────────────────────────────
 ipcMain.handle('get-config',    ()           => config);
 ipcMain.handle('update-config', (_, updates) => {
-  const langChanged = 'language' in updates && updates.language !== config.language;
+  const langChanged  = 'language' in updates && updates.language  !== config.language;
+  const themeChanged = 'theme'    in updates && updates.theme     !== config.theme;
   Object.assign(config, updates);
   writeConfig(config);
-  if (langChanged) buildMenu();
+  if (langChanged || themeChanged) buildMenu();
 });
+
+ipcMain.handle('get-locales', () => loadLocalesIndex());
+
+ipcMain.handle('get-themes', () => {
+  const themes = builtinThemes.map(t => ({ ...t, isUser: false }));
+  if (fs.existsSync(userThemesDir)) {
+    for (const f of fs.readdirSync(userThemesDir).filter(f => f.endsWith('.css'))) {
+      const id = `user:${f.replace('.css', '')}`;
+      themes.push({
+        id,
+        name:   f.replace('.css', ''),
+        mode:   'light',
+        isUser: true,
+        href:   require('url').pathToFileURL(path.join(userThemesDir, f)).href,
+      });
+    }
+  }
+  return themes;
+});
+
+ipcMain.handle('open-themes-folder', () => {
+  fs.mkdirSync(userThemesDir, { recursive: true });
+  shell.openPath(userThemesDir);
+});
+
 ipcMain.handle('read-file',     (_, p)           => fs.readFileSync(p, 'utf8'));
 ipcMain.handle('write-file',    (_, p, data)     => {
   fs.writeFileSync(p, data, 'utf8');
@@ -366,19 +409,13 @@ ipcMain.handle('print-to-pdf', async (_, opts) => {
   });
   if (r.canceled) return null;
 
-  // Write HTML to a temp file so the hidden window can load it via file://
   const tmpPath = path.join(app.getPath('temp'), `_pdf_${Date.now()}.html`);
   fs.writeFileSync(tmpPath, opts?.html || '', 'utf8');
   const fileUrl = require('url').pathToFileURL(tmpPath).href;
 
   const pdfWin = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true } });
   await pdfWin.loadURL(fileUrl);
-
-  const data = await pdfWin.webContents.printToPDF({
-    printBackground: true,
-    pageSize: 'A4',
-    margins: { marginType: 'default' },
-  });
+  const data = await pdfWin.webContents.printToPDF({ printBackground: true, pageSize: 'A4', margins: { marginType: 'default' } });
   pdfWin.destroy();
   try { fs.unlinkSync(tmpPath); } catch {}
 
@@ -462,20 +499,13 @@ ipcMain.once('renderer-ready', () => {
     pendingFile = null;
     return;
   }
-  // Restore last session
-  if (config.lastFile && fs.existsSync(config.lastFile)) {
-    openFile(config.lastFile);
-  }
-  if (config.lastFolder && fs.existsSync(config.lastFolder)) {
-    send('menu-open-folder', config.lastFolder);
-  }
-
-  // Update detection (F11)
+  if (config.lastFile && fs.existsSync(config.lastFile)) openFile(config.lastFile);
+  if (config.lastFolder && fs.existsSync(config.lastFolder)) send('menu-open-folder', config.lastFolder);
   checkForUpdate();
 });
 
 // ── Update detection (F11) ────────────────────────────────────────────────────
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.0.1';
 const RELEASE_API     = 'https://api.github.com/repos/kevinchen202008-cmyk/typora-alternative/releases/latest';
 
 function checkForUpdate() {
@@ -503,6 +533,8 @@ function checkForUpdate() {
 
 // ── App lifecycle ──────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  loadThemesIndex();
+  refreshMenuLocale();
   createWindow();
   const args = process.argv.slice(isDev ? 2 : 1);
   if (args[0] && fs.existsSync(args[0])) pendingFile = args[0];
