@@ -1,0 +1,9 @@
+created: 2026-05-12T08:26:19.513Z
+updated: 2026-05-12T08:26:19.514Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: status-bar
+children: []
+parentPath:
+  - renderer

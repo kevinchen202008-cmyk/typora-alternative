@@ -1,0 +1,1 @@
+Entry point for file content. Three paths: (1) OS open-with — pendingFile is captured before renderer is ready, sent via file-opened IPC on renderer-ready. (2) Menu File > Open (Ctrl+O) — dialog.showOpenDialog then read-file IPC. (3) Sidebar click — readDirectory IPC for tree, read-file IPC on click. All paths deliver { filePath, content } to handleFileOpen in App.jsx.

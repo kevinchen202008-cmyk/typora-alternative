@@ -1,0 +1,1 @@
+Creates and manages the single BrowserWindow. Sets backgroundColor based on current theme mode (dark/light) to avoid white flash on startup. In dev mode loads from Vite devserver (localhost:5173); in production loads dist/index.html. Saves window bounds to config on close. Persists last open folder and recent files list.

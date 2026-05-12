@@ -1,0 +1,9 @@
+created: 2026-05-12T08:26:31.161Z
+updated: 2026-05-12T08:26:31.162Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: settings-panel
+children: []
+parentPath:
+  - renderer

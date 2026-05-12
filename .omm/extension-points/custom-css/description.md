@@ -1,0 +1,1 @@
+A user-supplied .css file path, set in Settings > Custom CSS. Loaded via read-file IPC and injected as <style id="custom-css"> in document.head, layered on top of the active theme. Cleared by removing the element. Allows per-user overrides without creating a full theme. Path is persisted to config.json.

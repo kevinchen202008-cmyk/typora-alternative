@@ -1,0 +1,1 @@
+Traces how Markdown content moves through the application: from file open (OS/menu/sidebar) → Vditor buffer → App contentRef → auto-save to disk. Also covers three export pipelines (HTML, PDF, DOCX) and the image paste/drop flow that saves assets relative to the current file.

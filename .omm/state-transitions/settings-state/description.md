@@ -1,0 +1,1 @@
+editorFont (CSS font-family string), editorFontSize (px string), customCssPath (file path). Applied via CSS custom properties: --editor-font and --editor-font-size on document.documentElement. customCssPath triggers a readFile IPC, injects content into a <style id="custom-css"> element. All three persisted to config and reloaded from it on startup.

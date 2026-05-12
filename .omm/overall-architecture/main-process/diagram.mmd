@@ -1,0 +1,19 @@
+graph LR
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+
+    window-manager["Window Manager\nBrowserWindow lifecycle"]
+    menu-builder["Menu Builder\nbuildMenu() + m()"]
+    ipc-handlers["IPC Handlers\nipcMain.handle/on"]
+    config-store["Config Store\nuserData/config.json"]
+    export-engine["Export Engine\nHTML / PDF / DOCX"]
+    update-checker["Update Checker\nGitHub Releases API"]
+
+    window-manager -->|"calls on startup + lang change"| menu-builder
+    menu-builder -->|"reads menuLocale"| ipc-handlers
+    ipc-handlers -->|"read/write"| config-store
+    ipc-handlers -->|"triggers"| export-engine
+    ipc-handlers -->|"triggers on launch"| update-checker
+
+    class config-store store
+    class update-checker external

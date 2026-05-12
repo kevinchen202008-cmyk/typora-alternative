@@ -1,0 +1,1 @@
+contextBridge creates read-only frozen proxies — window.electronAPI properties cannot be monkey-patched at runtime. This prevents mocking in Playwright tests; tests that need to intercept IPC must use window.__editorRef or other already-exposed test helpers instead.

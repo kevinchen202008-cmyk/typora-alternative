@@ -1,0 +1,1 @@
+Purely presentational bottom bar. Displays: current file name, dirty indicator, word/char count, editor mode badge, focus mode toggle, typewriter mode toggle, sidebar toggle, and language toggle. All state is passed as props from App; callbacks fire App's toggle handlers.

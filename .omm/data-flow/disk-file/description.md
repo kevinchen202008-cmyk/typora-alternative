@@ -1,0 +1,1 @@
+.md files on the user's filesystem. Read via fs.readFile (main process), written via fs.writeFile. The main process handles all actual I/O — the renderer never touches the filesystem directly. Recent file paths are persisted in config.json for the Open Recent submenu (up to 10 entries).

@@ -1,0 +1,1 @@
+On app launch, fetches the GitHub Releases API for the latest tag. Compares against CURRENT_VERSION constant (1.0.1). If newer, sends update-available IPC event to the renderer, which shows a dismissible update banner in the editor area. Uses Electron's net module rather than fetch to work behind corporate proxies.

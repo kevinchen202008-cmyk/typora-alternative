@@ -1,0 +1,1 @@
+getHTML() returns the rendered HTML body from Vditor. App wraps it in a full HTML document with Vditor CDN stylesheet and sends to export-html IPC. Main shows save dialog (default: document-name.html) and writes the file. Output is a self-contained HTML file readable in any browser.

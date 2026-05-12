@@ -1,0 +1,1 @@
+Vditor's in-memory document buffer. The input() callback fires on every keystroke, passing the current Markdown string to App's handleContentChange. getValue() returns raw Markdown; getHTML() returns rendered HTML (used for export). setValue() replaces content programmatically (used by tab switching and __setContent test helper).

@@ -1,0 +1,1 @@
+I18nContext.jsx React context provider. On mount: fetches locales/index.json, determines target locale (config > navigator.language > en-US fallback via resolveLocale), loads ui.json via loadLocale(), pre-warms en-US fallback bundle. Returns null until ready (prevents i18n flash). Exposes { lang, locales, setLang, t } via useI18n() hook.

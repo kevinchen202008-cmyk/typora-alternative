@@ -1,0 +1,1 @@
+Two locale bundles ship out of the box: en-US and zh-Hans. Each has ui.json (62 keys for React component strings) and menu.json (~45 keys for native Electron menu labels). Key names are English kebab-free camelCase. String interpolation uses {varName} placeholders. The renderer loads ui.json via fetch; the main process loads menu.json via fs.readFileSync.

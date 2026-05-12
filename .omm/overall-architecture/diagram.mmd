@@ -1,0 +1,28 @@
+graph LR
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+
+    renderer["Renderer Process\nsrc/"]
+    main-process["Main Process\nelectron/main.js"]
+    preload["Preload Bridge\nelectron/preload.js"]
+    theme-system["Theme System\npublic/themes/"]
+    locale-system["Locale System\npublic/locales/"]
+    file-system["File System\n%APPDATA% + workspace"]
+    vditor["Vditor Editor\npublic/vditor/"]
+    test-suite["Test Suite\ntests/"]
+
+    renderer -->|"contextBridge API calls"| preload
+    preload -->|"ipcRenderer.invoke/send"| main-process
+    main-process -->|"ipcMain events to renderer"| preload
+    renderer -->|"fetch JSON at startup"| locale-system
+    renderer -->|"<link> href swap"| theme-system
+    renderer -->|"CDN-local hybrid"| vditor
+    main-process -->|"readFileSync / writeFileSync"| file-system
+    main-process -->|"fs.readFileSync index.json"| theme-system
+    main-process -->|"fs.readFileSync menu.json"| locale-system
+    test-suite -->|"Playwright Electron launch"| main-process
+
+    class renderer entry
+    class file-system store
+    class vditor external

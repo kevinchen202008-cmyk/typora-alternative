@@ -1,0 +1,1 @@
+Floating bar that appears above the editor. Uses Vditor's built-in search API (vditor.vditor.lute or regex scan) to find matches in the current document. Supports case-sensitive toggle, previous/next navigation, replace, and replace-all. Dismisses on Escape. Controlled by showFind state in App.

@@ -1,0 +1,1 @@
+Two-tab panel: Files tab shows a recursive directory tree (readDirectory IPC), Outline tab parses headings from contentRef and re-renders on outlineVer increment (debounced 800ms after content changes). Supports context menu (right-click) for file operations: new file, new folder, rename, delete, show in Explorer. Uses a recursive FileList component for indented tree rendering.

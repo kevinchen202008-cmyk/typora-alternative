@@ -1,0 +1,1 @@
+public/locales/index.json — array of { id, name, nativeName }. Fetched by I18nContext.jsx on app startup. Used to populate the language dropdown in SettingsPanel (showing nativeName). Used by resolveLocale() to match navigator.language (BCP-47) to the nearest available locale. To add a language: add an entry here and create public/locales/{id}/ui.json + menu.json.

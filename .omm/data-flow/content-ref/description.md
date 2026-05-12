@@ -1,0 +1,1 @@
+React ref (useRef) in App.jsx that mirrors the current Markdown string. Updated synchronously in handleContentChange and on tab switches. Used by: auto-save timer, export handlers (getValue), outline heading parser, and the __setContent test helper. Avoids the stale closure problem that would occur if a state variable were captured in the auto-save callback.

@@ -1,0 +1,31 @@
+graph LR
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+
+    file-open["File Open\nOS open-with / menu / sidebar"]
+    editor-content["Editor Content\nVditor in-memory buffer"]
+    content-ref["Content Ref\nApp.jsx contentRef"]
+    auto-save["Auto-Save Timer\n5s debounce"]
+    disk-file["Markdown File\n.md on disk"]
+    image-paste["Image Paste/Drop\n./assets/ folder"]
+    export-html["HTML Export\ndialog.showSaveDialog"]
+    export-pdf["PDF Export\nhidden BrowserWindow"]
+    export-docx["DOCX Export\npandoc spawn"]
+    config-file["Config File\nuserData/config.json"]
+
+    file-open -->|"IPC: read-file → content string"| editor-content
+    editor-content -->|"input() callback"| content-ref
+    content-ref -->|"triggers after 5s idle"| auto-save
+    auto-save -->|"IPC: write-file"| disk-file
+    editor-content -->|"IPC: save-image → rel path inserted"| image-paste
+    image-paste -->|"saved to ./assets/"| disk-file
+    editor-content -->|"getHTML() → html string"| export-html
+    editor-content -->|"getHTML() → hidden window printToPDF"| export-pdf
+    content-ref -->|"getValue() → markdown → pandoc stdin"| export-docx
+    auto-save -->|"persists lastFolder, recentFiles"| config-file
+
+    class file-open entry
+    class disk-file store
+    class config-file store
+    class export-docx external

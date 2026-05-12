@@ -1,0 +1,1 @@
+Vditor has no public setMode() API; mode changes are achieved by clicking the hidden toolbar button programmatically (vd.vditor.toolbar.elements['edit-mode'].querySelector('button[data-mode="..."]').click()). Pending theme/mode/value changes are queued in refs and applied in the after() callback once Vditor is ready.

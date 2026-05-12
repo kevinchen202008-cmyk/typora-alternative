@@ -1,0 +1,1 @@
+Modal overlay panel (Ctrl+,). Sections: Editor (font family, font size), Theme (dynamic list from getThemes() IPC, "Open Themes Folder" button), Custom CSS (file picker), Language (dynamic list from useI18n locales). Theme and language changes are instant-apply; font/size/CSS changes apply on Save. Fetches theme list on mount via window.electronAPI.getThemes().

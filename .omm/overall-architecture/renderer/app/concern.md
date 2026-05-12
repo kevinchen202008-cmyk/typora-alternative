@@ -1,0 +1,1 @@
+All IPC listeners are registered in a single useEffect([]) with no deps — adding new IPC events requires editing this monolithic block. The applyTheme callback awaits a CSS <link> load event, which has a 500ms fallback timeout that could cause a stale Vditor theme on slow systems.

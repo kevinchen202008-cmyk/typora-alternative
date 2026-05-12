@@ -1,0 +1,1 @@
+Vditor editing mode: ir (Instant Rendering — default), sv (Split View — raw + preview), wysiwyg. Toggled via Ctrl+/ (cycles ir↔sv), menu, or status bar. Because Vditor has no public setMode() API, mode changes programmatically click the hidden toolbar edit-mode button. Pending mode changes before Vditor is ready are queued in pendingMode ref.

@@ -1,0 +1,1 @@
+focusMode: adds .focus-mode CSS class to .app; a selectionchange listener in Editor.jsx tracks the cursor block and adds .focus-block class to the active paragraph (all others dimmed to 25% opacity). typewriterMode: a keyup/mouseup listener scrolls the contenteditable to center the cursor line. Both modes are toggled by Ctrl+Shift+F / Ctrl+Shift+Y and persisted to config.

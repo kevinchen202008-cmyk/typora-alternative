@@ -1,0 +1,1 @@
+isDirty (React state) and isDirtyRef (ref for callbacks). Set to true on every content change. Cleared when auto-save or manual save succeeds. Also tracked per-tab in the tabs array (isDirty field). The tab bar shows a colored dot on dirty tabs. Closing a dirty tab shows a confirm dialog.

@@ -1,0 +1,20 @@
+graph TD
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    tab-state["Tab State\ntabs[] + activeIdx"]
+    editor-mode["Editor Mode\nir / sv / wysiwyg"]
+    theme-state["Theme State\ntheme ID + <link> href"]
+    sidebar-state["Sidebar State\nopen + active tab"]
+    focus-state["Focus / Typewriter Mode\nfocusMode + typewriterMode"]
+    dirty-state["Dirty State\nisDirty + autoSave timer"]
+    settings-state["Settings State\nfont + size + customCss"]
+
+    tab-state -->|"activateTab() restores contentRef"| dirty-state
+    tab-state -->|"activateTab() calls setValue()"| editor-mode
+    dirty-state -->|"auto-save clears isDirty"| tab-state
+    theme-state -->|"applyTheme() calls setVditorTheme()"| editor-mode
+    editor-mode -->|"mode button click in Vditor"| tab-state
+    focus-state -->|"CSS class .focus-block toggled on selectionchange"| editor-mode
+    settings-state -->|"CSS vars --editor-font / --editor-font-size"| editor-mode
+
+    class tab-state entry

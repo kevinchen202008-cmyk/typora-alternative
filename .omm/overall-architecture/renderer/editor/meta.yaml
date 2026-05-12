@@ -1,0 +1,9 @@
+created: 2026-05-12T08:25:57.628Z
+updated: 2026-05-12T08:26:03.902Z
+update_count: 2
+last_field: note
+kind: nested-class
+title: editor
+children: []
+parentPath:
+  - renderer

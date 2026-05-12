@@ -1,0 +1,1 @@
+public/themes/index.json — array of { id, name, mode }. Consumed by get-themes IPC handler which merges it with user themes scanned from userData/themes/. Also consumed by buildMenu() to generate the dynamic theme submenu. The renderer's SettingsPanel fetches this list on mount via getThemes() to populate the theme dropdown.

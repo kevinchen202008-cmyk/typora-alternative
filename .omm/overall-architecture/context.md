@@ -1,0 +1,1 @@
+Goal: feature-complete local Windows Markdown editor identical to Typora. Started as a learning project ("typora-fake"), renamed to "typora-alternative" on 2026-05-10. At v1.0.1 with a full Playwright test suite (73+ tests).

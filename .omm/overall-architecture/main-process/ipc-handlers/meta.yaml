@@ -1,0 +1,9 @@
+created: 2026-05-12T08:27:18.394Z
+updated: 2026-05-12T08:27:18.395Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: ipc-handlers
+children: []
+parentPath:
+  - main-process

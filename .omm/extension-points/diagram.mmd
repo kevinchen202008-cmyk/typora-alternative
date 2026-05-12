@@ -1,0 +1,25 @@
+graph LR
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    theme-registry["Theme Registry\npublic/themes/index.json"]
+    builtin-themes["Built-in Themes\npublic/themes/*.css"]
+    user-themes["User Themes\n%APPDATA%/themes/*.css"]
+    locale-registry["Locale Registry\npublic/locales/index.json"]
+    builtin-locales["Built-in Locales\npublic/locales/{id}/"]
+    custom-css["Custom CSS\nuser-supplied .css file"]
+    theme-consumer["Theme Consumer\nApp.jsx applyTheme()"]
+    locale-consumer["Locale Consumer\nI18nContext.jsx"]
+
+    theme-registry -->|"getThemes() IPC merges"| builtin-themes
+    theme-registry -->|"getThemes() IPC merges"| user-themes
+    builtin-themes -->|"<link> href swap"| theme-consumer
+    user-themes -->|"file:// URL <link> injection"| theme-consumer
+    custom-css -->|"<style> element injection"| theme-consumer
+    locale-registry -->|"fetch index.json"| locale-consumer
+    builtin-locales -->|"fetch ui.json"| locale-consumer
+
+    class user-themes store
+    class custom-css store
+    class theme-consumer entry
+    class locale-consumer entry

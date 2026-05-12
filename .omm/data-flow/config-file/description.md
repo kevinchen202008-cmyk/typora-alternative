@@ -1,0 +1,1 @@
+%APPDATA%/typora-alternative/config.json. Read on startup via readConfig() with automatic migration. Written on every updateConfig IPC call (partial merge — only provided keys are updated) and on window close (bounds). Acts as the persistence layer for all user preferences and session state.

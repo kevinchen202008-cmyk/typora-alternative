@@ -1,0 +1,1 @@
+Horizontal tab strip rendered from the tabs array in App. Each tab shows title, dirty indicator (dot), and close button. Supports mouse-click switching, Ctrl+Tab/Ctrl+Shift+Tab cycling, and a "+" new-tab button. Purely presentational — all tab logic (open, close, switch, snapshot) lives in App.jsx.

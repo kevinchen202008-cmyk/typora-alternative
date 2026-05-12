@@ -1,0 +1,1 @@
+Core multi-document state: tabs[] array (each has id, filePath, content, isDirty, title) + activeIdx. tabsRef and activeIdxRef are kept in sync for use inside IPC callbacks. switchTab() calls snapshotTab() to save live contentRef/isDirtyRef before activating the new tab. Closing the last tab resets to an empty untitled tab rather than exiting.

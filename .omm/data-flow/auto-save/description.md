@@ -1,0 +1,1 @@
+setTimeout-based debounce (5000ms) in handleContentChange. Cleared on every keystroke, so write-file IPC fires only 5 seconds after the user stops typing. Only triggers if currentFileRef.current is set (i.e., the document has been saved to disk at least once). On success, clears isDirty state. Manual Ctrl+S bypasses the timer and calls doSave() directly.

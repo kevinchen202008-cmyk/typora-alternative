@@ -1,0 +1,17 @@
+created: 2026-05-12T08:28:36.728Z
+updated: 2026-05-12T08:28:50.411Z
+update_count: 3
+last_field: note
+git_commit: 5fabc3f
+git_branch: main
+children:
+  - auto-save
+  - config-file
+  - content-ref
+  - disk-file
+  - editor-content
+  - export-docx
+  - export-html
+  - export-pdf
+  - file-open
+  - image-paste

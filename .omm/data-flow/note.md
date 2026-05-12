@@ -1,0 +1,1 @@
+contentRef (a React ref, not state) is the source of truth for content in callbacks — avoids stale closures in the auto-save timer and export handlers. Word count is derived from contentRef via countWords() and held in state for the status bar. The outline is re-parsed from contentRef when outlineVer increments (debounced 800ms after content change).

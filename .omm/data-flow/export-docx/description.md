@@ -1,0 +1,1 @@
+Spawns pandoc with the raw Markdown piped to stdin and --from=markdown --to=docx flags. Output is saved to a temp file then moved to the user's chosen path. Returns { success, error } to the renderer. If pandoc is not found in PATH, returns an error message shown as an alert. Requires external pandoc installation.

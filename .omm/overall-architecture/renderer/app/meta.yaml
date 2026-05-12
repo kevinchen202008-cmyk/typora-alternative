@@ -1,0 +1,9 @@
+created: 2026-05-12T08:25:45.364Z
+updated: 2026-05-12T08:25:50.574Z
+update_count: 2
+last_field: concern
+kind: nested-class
+title: app
+children: []
+parentPath:
+  - renderer

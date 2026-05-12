@@ -1,0 +1,1 @@
+Documents how the major UI state machines in App.jsx interact. The tab state is the root — all other state is snapshotted into or restored from the tabs array on tab switch. Theme changes cascade to Vditor via CSS variable reads after <link> swap. Focus/typewriter modes add CSS classes to the editor DOM without touching React state.

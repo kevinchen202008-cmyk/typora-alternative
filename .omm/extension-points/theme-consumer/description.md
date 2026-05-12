@@ -1,0 +1,1 @@
+applyTheme(themeId) in App.jsx orchestrates theme application: sets <link id="app-theme"> href to ./themes/{id}.css (or file:// URL for user themes), awaits CSS load, reads --vditor-* CSS variables via getComputedStyle, then calls editorRef.current.setVditorTheme() to synchronize Vditor's internal theme.

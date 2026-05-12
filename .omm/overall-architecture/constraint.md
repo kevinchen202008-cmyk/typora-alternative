@@ -1,0 +1,3 @@
+- No direct Node.js access from renderer; all privileged operations go through the preload bridge (contextBridge).
+- Vditor is served locally (public/vditor/) to avoid CDN dependency in production.
+- electron-builder@24 is incompatible with npm v11 and has been removed; packaging uses a custom portable script instead.

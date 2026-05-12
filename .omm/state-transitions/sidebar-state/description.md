@@ -1,0 +1,1 @@
+Two booleans: sidebarOpen (toggle with Ctrl+Shift+L or status bar button) and sidebarTab ('files' | 'outline'). Both persisted to config. Opening outline tab forces sidebarOpen=true. The sidebar re-renders on outlineVer increment (debounced 800ms from content changes) by re-parsing headings from contentRef.
