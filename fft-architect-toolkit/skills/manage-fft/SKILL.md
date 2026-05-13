@@ -1,6 +1,6 @@
 ---
 name: manage-fft
-description: Full-Function Tree (FFT) v2.1 — initialize, update, or impact_analysis for architecture documentation. Produces a five-section document covering Meta-Model, Functional Hierarchy (Domain→Service→Function→Feature), Lifecycle Table, Impact Analysis Matrix, and detailed Function Specifications with typed I/O and numbered process steps (no Mermaid).
+description: Full-Function Tree (FFT) v2.1 — initialize, update, or impact_analysis for architecture documentation. Produces a six-section document covering Architecture Overview (Domain/Service definitions and inter-domain relationships), Meta-Model, Functional Hierarchy (Domain→Service→Function→Feature), Lifecycle Table, Impact Analysis Matrix, and detailed Function Specifications with typed I/O and numbered process steps (no Mermaid).
 argument-hint: "[initialize|update|impact_analysis] [source_path] [--fid=FID]"
 ---
 
@@ -21,22 +21,64 @@ Examples: `FTM-01`, `EDI-02-01`, `UI-01-03-A`
 
 ## Document Structure (v2.1.0)
 
-### Section I — 节点定义元模型 (Meta-Model)
+### Section I — 领域与服务架构总览 (Architecture Overview)
+
+**Purpose:** Provide a human-readable description of every Domain and Service, plus explicit architectural relationships between them. This is the entry point for new contributors and the basis for all impact analysis.
+
+**Content rules:**
+
+1. **Domain definition table** — one row per Domain:
+
+   | 列 | 内容 |
+   |----|------|
+   | Domain (FID) | MODULE 缩写及中文名 |
+   | 职责边界 | 该领域的核心职责，一句话，不超过 30 字 |
+   | 主要技术栈 | 关键框架/API（如 Electron IPC、React Context、Vditor） |
+   | Logic_Ref | 主要实现文件（可多个，逗号分隔） |
+
+2. **Service definition table** — one row per Service, grouped by Domain:
+
+   | 列 | 内容 |
+   |----|------|
+   | Service (FID) | 服务名及中文名 |
+   | 所属 Domain | 父 Domain FID |
+   | 职责 | 该服务的核心职责，一句话 |
+   | 对外接口 | 暴露给其他 Domain/Service 使用的函数或事件（FID 列表） |
+   | 依赖的外部服务 | 本服务调用的其他 Domain 下的 Service FID |
+
+3. **架构关系矩阵** — a plain-text dependency matrix showing which Domains call which. Use a Markdown table with Domain codes on both axes; cell value is the relationship type:
+
+   - `→ IPC` 主进程 IPC 调用
+   - `→ ref` React ref / callback 调用
+   - `→ ctx` React Context 消费
+   - `→ event` DOM 事件或 IPC send（单向）
+   - `—` 无直接依赖
+
+4. **架构分层描述** — 2–4 bullet points summarising the overall layering logic (e.g., "SYS 为基础层，所有 Domain 通过 IPC 消费 OS 能力；FTM 为编排层…").
+
+**Write rules:**
+- No Mermaid. Tables and bullets only.
+- Each Domain and Service must be described in Chinese (职责) + English (技术栈/FID).
+- The relationship matrix must be exhaustive — every Domain pair must have an entry.
+
+---
+
+### Section II — 节点定义元模型 (Meta-Model)
 Standard block, always included verbatim. Defines the five node attributes.
 
-### Section II — 核心功能树结构 (Hierarchy)
+### Section III — 核心功能树结构 (Hierarchy)
 Indented bullet list: Domain → Service → Function → Feature.  
 Each node carries: `Type`, `Status`, `Logic_Ref`, and cross-references (`Refs: OTHER-FID`).
 
-### Section III — 全生命周期维护属性映射表
+### Section IV — 全生命周期维护属性映射表
 Markdown table: FID | Logic_Ref | 负责人 | 维护记录 | 关键SLO.  
 One row per Function/Feature FID.
 
-### Section IV — 演进影响分析矩阵 (Impact Analysis Matrix)
+### Section V — 演进影响分析矩阵 (Impact Analysis Matrix)
 Markdown table: 变更目标FID | 变更类型 | 直接影响面 | 间接连锁影响.  
 Cover the 5–10 most impactful FIDs.
 
-### Section V — 功能节点详细规格 (Function Specifications)
+### Section VI — 功能节点详细规格 (Function Specifications)
 **Apply the leaf-node template to every Function and Feature node.**  
 Use **numbered steps** for Process — no Mermaid diagrams.
 
@@ -87,19 +129,25 @@ Scan the codebase and build the first `docs/FFT.md`.
 
 4. **Assign FIDs.** Follow `MODULE-NN[-NN[-L]]` convention. Never reuse a FID. Skip trivial functions (getters, one-line pass-throughs, constructors with no logic).
 
-5. **Write Section I.** Standard Meta-Model block (copy verbatim from this skill).
+5. **Write Section I (Architecture Overview).**
+   - For each Domain: write a one-sentence 职责边界, list 主要技术栈 and Logic_Ref.
+   - For each Service: write 职责, list 对外接口 (exported FIDs used by other Domains), and 依赖的外部服务.
+   - Build the 架构关系矩阵: fill every Domain×Domain cell with the relationship type (`→ IPC`, `→ ref`, `→ ctx`, `→ event`, `—`).
+   - Write 2–4 bullet points of 架构分层描述 summarising the layering logic.
 
-6. **Write Section II.** Indented bullet hierarchy. Each node: `[FID: X]`, bold name, backtick-tagged `Type:`, `Status:`, `Logic_Ref:`, and any `Refs:` cross-references.
+6. **Write Section II.** Standard Meta-Model block (copy verbatim from this skill).
 
-7. **Write Section III.** One table row per Function/Feature. Populate `Logic_Ref` from file paths. Use `-` for unknown owner/changelog/SLO.
+7. **Write Section III.** Indented bullet hierarchy. Each node: `[FID: X]`, bold name, backtick-tagged `Type:`, `Status:`, `Logic_Ref:`, and any `Refs:` cross-references.
 
-8. **Write Section IV.** Identify high-impact FIDs (those with most dependents). Document direct and transitive chain impact.
+8. **Write Section IV.** One table row per Function/Feature. Populate `Logic_Ref` from file paths. Use `-` for unknown owner/changelog/SLO.
 
-9. **Write Section V.** Full leaf-node spec for every Function and Feature. Use numbered Process steps — no Mermaid.
+9. **Write Section V.** Identify high-impact FIDs (those with most dependents). Document direct and transitive chain impact.
 
-10. **Write `docs/FFT.md`** with header `# [ProjectName] 全量功能树 (v2.1.0)`. Create `docs/` if missing.
+10. **Write Section VI.** Full leaf-node spec for every Function and Feature. Use numbered Process steps — no Mermaid.
 
-11. **Report**: Print summary — domains / services / functions / features documented.
+11. **Write `docs/FFT.md`** with header `# [ProjectName] 全量功能树 (v2.1.0)`. Create `docs/` if missing.
+
+12. **Report**: Print summary — domains / services / functions / features documented.
 
 ---
 
@@ -112,12 +160,13 @@ Sync `docs/FFT.md` with code changes.
 1. Read existing `docs/FFT.md` to extract FID → function mapping.
 2. Scan source files for added, modified, or deleted functions.
 3. Unchanged functions (same signature + same guard logic) → skip.
-4. Changed functions → re-generate Section V spec; update `Last Synced`.
-5. New functions → assign new FID; add to Sections II, III, V.
+4. Changed functions → re-generate Section VI spec; update `Last Synced`.
+5. New functions → assign new FID; add to Sections III, IV, VI.
 6. Deleted functions → mark `Status: Legacy` in hierarchy (do not delete).
-7. Update Section IV if new cross-FID dependencies detected.
-8. Write updated `docs/FFT.md`.
-9. Report: list updated / added / deprecated FIDs.
+7. If a Domain or Service is added/removed, update Section I (Architecture Overview) and Section III.
+8. Update Section V if new cross-FID dependencies detected.
+9. Write updated `docs/FFT.md`.
+10. Report: list updated / added / deprecated FIDs; flag if Section I was changed.
 
 ---
 
@@ -129,12 +178,14 @@ Given a FID, produce a change-impact report.
 
 **Steps:**
 
-1. Read `docs/FFT.md` — extract dependency graph from `Dependencies` fields and `Refs:` annotations in Section II.
-2. Grep the codebase for direct callers of the target function (by function name and FID comment).
-3. Recurse to depth 3 to find transitive impacts.
-4. Append to `docs/FFT.md` (do NOT overwrite) or print inline:
+1. Read `docs/FFT.md` — extract dependency graph from `Dependencies` fields and `Refs:` annotations in Section III.
+2. Consult Section I 架构关系矩阵 to identify cross-Domain propagation paths.
+3. Grep the codebase for direct callers of the target function (by function name and FID comment).
+4. Recurse to depth 3 to find transitive impacts.
+5. Append to `docs/FFT.md` (do NOT overwrite) or print inline:
    - Direct callers with FIDs
    - Transitive impact list (depth 2–3)
+   - Cross-domain blast radius (from Section I matrix)
    - Recommended refactoring scope
 
 ---
@@ -142,9 +193,10 @@ Given a FID, produce a change-impact report.
 ## General Rules
 
 - **FIDs are permanent.** Never renumber existing FIDs after assignment.
-- **No Mermaid in Process sections.** Numbered steps avoid syntax errors across all Mermaid versions.
-- **Leaf coverage**: every Function and Feature node must have a Section V entry.
+- **No Mermaid anywhere.** Section I uses tables and bullets; Section VI uses numbered steps. No Mermaid in any section.
+- **Leaf coverage**: every Function and Feature node must have a Section VI entry.
 - **Dependencies field**: always use FID references, not function names.
 - **Status accuracy**: use `Refactoring` for actively changing functions, `Legacy` for deprecated ones.
+- **Section I is mandatory**: every FFT document must have a complete Architecture Overview. It is the first thing a reader sees and the basis for impact analysis.
 - **Write language**: match the project's primary language. Chinese section headers are standard; English code identifiers always stay in English.
 - **Output default**: `docs/FFT.md` relative to project root.

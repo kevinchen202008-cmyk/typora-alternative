@@ -4,7 +4,58 @@
 
 ---
 
-## Section I — 节点定义元模型 (Meta-Model)
+## Section I — 领域与服务架构总览 (Architecture Overview)
+
+### 1.1 Domain 定义
+
+| Domain (FID) | 中文名 | 职责边界 | 主要技术栈 | Logic_Ref |
+|-------------|--------|----------|-----------|-----------|
+| **FTM** | 文件与标签管理 | 负责文件 I/O、多标签页生命周期及编辑器内容编排，是应用核心工作流的编排中心 | React state + useRef + IPC invoke | `src/App.jsx` |
+| **EDI** | 编辑器引擎 | 封装并扩展 Vditor 编辑器，拥有所有 DOM 级编辑器交互（格式化、图片、滚动） | Vditor API + forwardRef + DOM 事件捕获 | `src/components/Editor.jsx` |
+| **UI** | 用户界面 | 提供侧边栏（文件树 + 大纲）和查找替换浮层，只读消费应用状态，通过回调上报用户意图 | React + IPC invoke（只读类） | `src/components/Sidebar.jsx`, `src/components/FindReplace.jsx` |
+| **TI** | 主题与国际化 | 管理 CSS 主题切换和语言包加载，是跨领域的横切关注点，影响所有 React 组件的视觉与文本渲染 | CSS Custom Properties + fetch + React Context | `src/i18n/index.js`, `src/i18n/I18nContext.jsx`, `electron/main.js` |
+| **SYS** | 系统与IPC | Electron 主进程服务与 contextBridge IPC 桥，向渲染进程提供所有 OS 级能力（文件系统、窗口、更新检测） | Electron IPC + Node.js fs + child_process | `electron/main.js`, `electron/preload.js` |
+
+### 1.2 Service 定义
+
+| Service (FID) | 所属 Domain | 职责 | 对外接口（供他 Domain 调用） | 依赖的外部 Service |
+|--------------|------------|------|-----------------------------|--------------------|
+| **FTM-01** 文件操作服务 | FTM | 处理文件打开/保存/另存/导出及设置持久化 | `handleFileOpen`（供 SYS IPC 事件触发）、`handleExport` | SYS-02-02, SYS-02-03 |
+| **FTM-02** 标签页管理服务 | FTM | 管理多标签页的创建、切换、关闭与内容快照 | `switchTab`、`openNewTab`、`closeTab`（供 FTM-01 和快捷键调用） | — |
+| **FTM-03** 工具函数 | FTM | 提供字数/行数统计等纯计算工具 | `countWords`（供 FTM-01-04、FTM-02-05 调用） | — |
+| **EDI-01** 编辑器核心服务 | EDI | 通过 imperative ref API 暴露滚动到标题和格式化命令 | `scrollToHeading`（供 UI-01 调用）、`executeFormat`（供 SYS 菜单事件调用） | — |
+| **EDI-02** 图片处理服务 | EDI | 拦截 paste/drop 事件，将图片保存到本地并插入 Markdown | — | SYS-02-04 |
+| **UI-01** 侧边栏服务 | UI | 提供文件树（懒加载子目录）和大纲（ATX 标题解析）及上下文菜单操作 | `onFileSelect`、`onHeadingClick` 回调（由 FTM 注册） | SYS-02-01 |
+| **UI-02** 查找替换服务 | UI | 在编辑器全文中执行查找定位和全部替换 | — | — |
+| **TI-01** 主题管理服务 | TI | 加载主题注册表，在主进程和渲染进程两侧同步切换主题 | `applyTheme-Main`（被 SYS-01-02 菜单调用）、`applyTheme-Renderer`（被 FTM 消费） | SYS-01-02 |
+| **TI-02** 国际化服务 | TI | 加载语言包、同步翻译、BCP-47 语言匹配，通过 React Context 全局分发 | `t()`、`loadLocale()`（被所有 React 组件消费） | — |
+| **SYS-01** 主进程服务 | SYS | 创建窗口、构建原生菜单、管理配置、检查更新 | IPC send 事件（`menu-*`、`file-opened`、`update-available`）触发 FTM 处理器 | TI-01-01, TI-02（menu locale） |
+| **SYS-02** IPC服务 | SYS | 通过 `ipcMain.handle` 向渲染进程暴露文件系统、PDF/DOCX 导出、图片保存等 OS 操作 | 各 IPC channel（`read-directory`、`print-to-pdf`、`export-docx`、`save-image` 等） | — |
+
+### 1.3 架构关系矩阵
+
+> 行为调用方（Caller），列为被调用方（Callee）；箭头类型说明见图例。
+
+| Caller → Callee | **FTM** | **EDI** | **UI** | **TI** | **SYS** |
+|-----------------|---------|---------|--------|--------|---------|
+| **FTM** | — | `→ ref`（editorRef 调用 EDI-01/02） | `→ event`（注册 UI 回调） | `→ ctx`（消费 TI-02 t()；调用 TI-01-03 applyTheme） | `→ IPC`（write-file, save-dialog, update-config 等） |
+| **EDI** | — | — | — | `→ ctx`（消费 TI-02 t()） | `→ IPC`（save-image） |
+| **UI** | `→ event`（onFileSelect, onHeadingClick 回调上报至 FTM） | — | — | `→ ctx`（消费 TI-02 t()） | `→ IPC`（read-directory, fs-rename/delete/mkdir/new-file） |
+| **TI** | — | — | — | — | `→ IPC`（get-config 确定初始语言；update-config 持久化语言切换） |
+| **SYS** | `→ event`（IPC send：file-opened, menu-* 触发 FTM 处理器） | — | — | `→ 直接调用`（refreshMenuLocale 加载 menu locale；loadThemesIndex） | — |
+
+**图例：** `→ IPC` 主进程 invoke · `→ ref` React imperative ref · `→ ctx` React Context 消费 · `→ event` IPC send 或 DOM 回调（单向） · `→ 直接调用` 同进程函数调用 · `—` 无直接依赖
+
+### 1.4 架构分层描述
+
+- **基础层 — SYS**：Electron 主进程是唯一拥有 Node.js 能力的进程。所有文件 I/O、系统对话框、PDF/DOCX 导出、图片写入均通过 `ipcMain.handle` 暴露，其他所有 Domain 均通过 `window.electronAPI.*` 消费，不得直接访问 Node.js API。
+- **横切关注点 — TI**：主题与国际化贯穿主/渲染两进程。TI-02 通过 React Context 向所有组件分发 `t()` 函数；TI-01 同时在主进程（菜单 locale）和渲染进程（CSS link 切换）生效。任何组件变更都不应绕过 `I18nContext` 直接读取语言包。
+- **编排层 — FTM**：`App.jsx` 是渲染进程的唯一状态中心，持有 `tabs`、`currentFile`、`theme`、`mode` 等全局 state，并通过 `editorRef`（命令式）驱动 EDI，通过 props/callback 驱动 UI。FTM 是事件汇集点，所有菜单 IPC 事件最终都路由到此处。
+- **能力层 — EDI / UI**：EDI 和 UI 均为无副作用的能力提供者：EDI 封装 Vditor 私有 API，UI 提供文件浏览和查找能力。两者均不持有跨组件的全局 state，仅通过回调和 ref 与 FTM 通信。
+
+---
+
+## Section II — 节点定义元模型 (Meta-Model)
 
 每个节点携带以下五个标准属性：
 
@@ -20,7 +71,7 @@ FID 示例：`FTM-01`（Service）、`EDI-02-01`（Function）、`UI-01-03-A`（
 
 ---
 
-## Section II — 核心功能树结构 (Hierarchy)
+## Section III — 核心功能树结构 (Hierarchy)
 
 ### Domain: FTM — 文件与标签管理
 
@@ -101,7 +152,7 @@ FID 示例：`FTM-01`（Service）、`EDI-02-01`（Function）、`UI-01-03-A`（
 
 ---
 
-## Section III — 全生命周期维护属性映射表
+## Section IV — 全生命周期维护属性映射表
 
 | FID | Logic_Ref | 负责人 | 维护记录 | 关键SLO |
 |-----|-----------|--------|----------|---------|
@@ -154,7 +205,7 @@ FID 示例：`FTM-01`（Service）、`EDI-02-01`（Function）、`UI-01-03-A`（
 
 ---
 
-## Section IV — 演进影响分析矩阵
+## Section V — 演进影响分析矩阵
 
 | 变更目标 FID | 变更类型 | 直接影响面 | 间接连锁影响 |
 |-------------|----------|-----------|-------------|
@@ -169,7 +220,7 @@ FID 示例：`FTM-01`（Service）、`EDI-02-01`（Function）、`UI-01-03-A`（
 
 ---
 
-## Section V — 功能节点详细规格 (Function Specifications)
+## Section VI — 功能节点详细规格 (Function Specifications)
 
 ---
 
@@ -1491,4 +1542,4 @@ FID 示例：`FTM-01`（Service）、`EDI-02-01`（Function）、`UI-01-03-A`（
 
 ---
 
-*文档统计：5 Domains · 12 Services · 43 Functions/Features · 0 Mermaid 图表*
+*文档统计：6 Sections · 5 Domains · 12 Services · 43 Functions/Features · 0 Mermaid 图表*
