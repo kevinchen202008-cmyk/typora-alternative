@@ -1,0 +1,8 @@
+{
+  "name": "fft-architect-toolkit",
+  "version": "1.0.0",
+  "description": "Full-Function Tree (FFT) toolkit — initialize, update, and impact analysis for architecture documentation keyed by FID.",
+  "author": {
+    "name": "kevinchen202008-cmyk"
+  }
+}
